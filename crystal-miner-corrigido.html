@@ -771,7 +771,7 @@
         <div class="stats-row">
             <div class="stat-item crystals">
                 <span class="icon">💎</span>
-                <span class="value" id="crystalCount">0</span>
+                <span class="value" id="crystalCount" aria-live="polite" role="status">0</span>
             </div>
             <div class="stat-item cps">
                 <span class="icon">⚡</span>
@@ -908,7 +908,7 @@
             const TEMPORAL_FRAGMENT_BONUS = 0.10;
 
             // ===== DEFINIÇÃO DE ITENS (PRESENTE) =====
-            const ITEMS_DEFS = [
+            let ITEMS_DEFS = [
                 { id: 'bronze_pick', name: 'Picareta de Bronze', type: 'click', rarity: 'common', baseBonus: 2, icon: '⛏️', source: 'gacha' },
                 { id: 'portable_miner', name: 'Robô Minerador Portátil', type: 'auto', rarity: 'common', baseBonus: 1, icon: '🤖', source: 'gacha' },
                 { id: 'iron_pick', name: 'Picareta de Ferro', type: 'click', rarity: 'rare', baseBonus: 8, icon: '🔩', source: 'gacha' },
@@ -932,7 +932,7 @@
                     { progress: 0.6, text: 'Dizem que apenas aqueles que renasceram podem empunhá-la...' },
                     { progress: 0.9, text: 'Você está quase digno da Lâmina Estelar!' }
                 ]},
-                { id: 'singularity_core', name: 'Núcleo de Singularidade', type: 'auto', rarity: 'legendary', baseBonus: 200, percentBonus: 0.12, icon: '🌀', source: 'special', unlockCondition: (s) => s.goldenCrystalsCaught >= 100, hints: [
+                { id: 'singularity_core', name: 'Núcleo de Singularidade', type: 'auto', rarity: 'legendary', baseBonus: 200, percentBonus: 0.12, icon: '🌀', source: 'special', unlockCondition: (s) => s.lifetimeGoldenCrystalsCaught >= 100, hints: [
                     { progress: 0.3, text: 'Cristais dourados podem esconder um segredo gravitacional...' },
                     { progress: 0.6, text: 'Cada Cristal Dourado capturado o aproxima de um poder distorcido...' },
                     { progress: 0.9, text: 'A singularidade está se formando! Continue capturando!' }
@@ -950,7 +950,7 @@
             ];
 
             // ===== ITEMS DA PARTE 2 (PASSADO) =====
-            const ITEMS_DEFS_PAST = [
+            let ITEMS_DEFS_PAST = [
                 { id: 'stone_pick', name: 'Picareta de Pedra Lascada', type: 'click', rarity: 'common', baseBonus: 2, icon: '🪨', source: 'gacha' },
                 { id: 'campfire', name: 'Fogueira', type: 'auto', rarity: 'common', baseBonus: 1, icon: '🔥', source: 'gacha' },
                 { id: 'bone_spear', name: 'Lança de Osso', type: 'click', rarity: 'rare', baseBonus: 8, icon: '🦴', source: 'gacha' },
@@ -967,7 +967,7 @@
             ];
 
             // ===== UPGRADES (PRESENTE) =====
-            const UPGRADES_DEFS = [
+            let UPGRADES_DEFS = [
                 { id: 'pickaxe', name: 'Picareta de Pedra', desc: '+1 por clique', baseCost: 50, costMult: 1.30, type: 'click', value: 1, icon: '⛏️', unlock: () => true },
                 { id: 'auto_miner', name: 'Minerador Básico', desc: '+1/s', baseCost: 150, costMult: 1.30, type: 'auto', value: 1, icon: '🤖', unlock: (s) => s.lifetimeTotalCrystals >= 200 },
                 { id: 'drill', name: 'Broca de Ferro', desc: '+5 por clique', baseCost: 800, costMult: 1.32, type: 'click', value: 5, icon: '🔩', unlock: (s) => s.lifetimeTotalCrystals >= 1000 },
@@ -987,7 +987,7 @@
             ];
 
             // ===== UPGRADES DA PARTE 2 (PASSADO) =====
-            const UPGRADES_DEFS_PAST = [
+            let UPGRADES_DEFS_PAST = [
                 { id: 'stone_pick', name: 'Picareta de Pedra Lascada', desc: '+1 por clique', baseCost: 50, costMult: 1.30, type: 'click', value: 1, icon: '🪨', unlock: () => true },
                 { id: 'campfire', name: 'Fogueira', desc: '+1/s', baseCost: 150, costMult: 1.30, type: 'auto', value: 1, icon: '🔥', unlock: (s) => s.lifetimeTotalCrystals >= 200 },
                 { id: 'bone_spear', name: 'Lança de Osso', desc: '+5 por clique', baseCost: 800, costMult: 1.32, type: 'click', value: 5, icon: '🦴', unlock: (s) => s.lifetimeTotalCrystals >= 1000 },
@@ -1005,7 +1005,7 @@
             ];
 
             // ===== CONQUISTAS =====
-            const ACHIEVEMENTS_DEFS = [
+            let ACHIEVEMENTS_DEFS = [
                 { id: 'first_click', name: 'Primeiro Toque', desc: 'Clique no cristal 1 vez', icon: '👆', check: (s) => s.lifetimeTotalClicks >= 1 },
                 { id: 'click_100', name: 'Clicador Iniciante', desc: '100 cliques totais', icon: '👆', check: (s) => s.lifetimeTotalClicks >= 100 },
                 { id: 'click_1000', name: 'Clicador Dedicado', desc: '1.000 cliques totais', icon: '🔥', check: (s) => s.lifetimeTotalClicks >= 1000 },
@@ -1028,19 +1028,183 @@
             ];
 
             // ===== CONTRATOS DIÁRIOS =====
-            const DAILY_CONTRACTS_DEFS = [
+            let DAILY_CONTRACTS_DEFS = [
                 { id: 'clicks', desc: 'Clique 500 vezes', target: 500, reward: 5, check: (s) => s.dailyStats.clicks >= 500 },
                 { id: 'mine', desc: 'Mine 50.000 cristais', target: 50000, reward: 8, check: (s) => s.dailyStats.crystals >= 50000 },
                 { id: 'golden', desc: 'Capture 5 Cristais Dourados', target: 5, reward: 10, check: (s) => s.dailyStats.golden >= 5 },
                 { id: 'upgrades', desc: 'Compre 20 upgrades', target: 20, reward: 6, check: (s) => s.dailyStats.upgrades >= 20 },
-                { id: 'level', desc: 'Alcance o nível 15', target: 15, reward: 12, check: (s) => getLevel(s.totalCrystals) >= 15 },
+                { id: 'level', desc: 'Alcance o nível 15', target: 15, reward: 12, check: (s) => getLevel(s.lifetimeTotalCrystals) >= 15 },
             ];
 
             // ===== MELHORIAS TEMPORAIS =====
-            const TEMPORAL_UPGRADES_DEFS = [
+            let TEMPORAL_UPGRADES_DEFS = [
                 { id: 'temp_prod_both', name: 'Produção Eterna', desc: '+10% produção em todas as eras', baseCost: 1, costMult: 1.5, effect: (s) => s.lifetimeTotalCrystals >= 0, bonus: 0.10, icon: '⚡' },
                 { id: 'temp_click_both', name: 'Clique Primordial', desc: '+15% clique em todas as eras', baseCost: 2, costMult: 2.0, effect: (s) => s.lifetimeTotalClicks >= 100, bonus: 0.15, icon: '👆' },
                 { id: 'temp_gacha', name: 'Sorte Temporal', desc: '+1 Gacha Coin por conquista', baseCost: 1, costMult: 2.0, effect: (s) => true, bonus: 1, icon: '🍀' },
+            ];
+
+            // ====================================================================
+            // GERADORES DE CONTEÚDO (FASE B): produzem centenas/milhares de
+            // "pequenas coisas" (upgrades, conquistas, itens, contratos, rumores)
+            // de forma consistente e data-driven, sem reescrever os sistemas core.
+            // ====================================================================
+            const CLICK_ICONS = ['⛏️','🔨','🗡️','🪓','⚒️','🔱','🗡','🪃','🏹','💠','🔆','✨','🌟','⚡','🔥','🌪️','❄️','☄️','🌈','💫'];
+            const AUTO_ICONS = ['🤖','⚙️','🔋','🏭','🛰️','🌌','⚛️','♾️','🌀','☢️','🌋','🧪','💡','🔭','🛸','⚗️','🪐','🌠','💎','🔆'];
+
+            // --- Upgrades escalonáveis (presente e passado) ---
+            function buildScaledUpgrades(prefix, label, icon, startCost, costMult, baseValue, type, count, startTier) {
+                const out = [];
+                for (let i = 0; i < count; i++) {
+                    const tier = startTier + i;
+                    const value = baseValue * Math.pow(2, i);
+                    const mult = costMult + i * 0.01;
+                    const reqCrystals = Math.floor(startCost * Math.pow(mult, i));
+                    out.push({
+                        id: `${prefix}_${tier}`,
+                        name: `${label} Nv.${tier}`,
+                        desc: `+${formatNumber(value)}${type === 'click' ? ' por clique' : '/s'}`,
+                        baseCost: reqCrystals,
+                        costMult: mult,
+                        type: type,
+                        value: value,
+                        icon: icon,
+                        unlock: (s) => s.lifetimeTotalCrystals >= reqCrystals * 0.2,
+                    });
+                }
+                return out;
+            }
+
+            UPGRADES_DEFS = UPGRADES_DEFS.concat(
+                buildScaledUpgrades('mk_click', 'Martelo de Cristal', '⛏️', 8e8, 1.5, 4000, 'click', 60, 1),
+                buildScaledUpgrades('mk_auto', 'Fábrica de Cristais', '🤖', 3e8, 1.52, 4000, 'auto', 60, 1),
+                buildScaledUpgrades('ex_click', 'Excavadora Estelar', '🪓', 5e9, 1.55, 30000, 'click', 60, 1),
+                buildScaledUpgrades('ex_auto', 'Reator Estelar', '🏭', 2e9, 1.57, 30000, 'auto', 60, 1),
+                buildScaledUpgrades('ul_click', 'Ultra Furadeira', '🔱', 1e11, 1.6, 250000, 'click', 60, 1),
+                buildScaledUpgrades('ul_auto', 'Singularidade Artificial', '🌀', 4e10, 1.62, 250000, 'auto', 60, 1),
+                buildScaledUpgrades('om_click', 'Onisciência', '🌟', 5e12, 1.65, 2e6, 'click', 60, 1),
+                buildScaledUpgrades('om_auto', 'Motor do Tempo', '⏳', 2e12, 1.67, 2e6, 'auto', 60, 1),
+                buildScaledUpgrades('in_click', 'Infinito Cortante', '♾️', 1e14, 1.7, 2e7, 'click', 60, 1),
+                buildScaledUpgrades('in_auto', 'Fonte Infinita', '💠', 4e13, 1.72, 2e7, 'auto', 60, 1)
+            );
+
+            UPGRADES_DEFS_PAST = UPGRADES_DEFS_PAST.concat(
+                buildScaledUpgrades('pr_click', 'Clava de Ossos', '🦴', 8e8, 1.5, 4000, 'click', 40, 1),
+                buildScaledUpgrades('pr_auto', 'Moinho Tribal', '🔥', 3e8, 1.52, 4000, 'auto', 40, 1),
+                buildScaledUpgrades('an_click', 'Lança Ancestral', '🪓', 5e9, 1.55, 30000, 'click', 40, 1),
+                buildScaledUpgrades('an_auto', 'Totem Colossal', '🗿', 2e9, 1.57, 30000, 'auto', 40, 1),
+                buildScaledUpgrades('my_click', 'Mistério do Tempo', '🌟', 1e11, 1.6, 250000, 'click', 40, 1),
+                buildScaledUpgrades('my_auto', 'Eco Primordial', '🌀', 4e10, 1.62, 250000, 'auto', 40, 1)
+            );
+
+            // --- Conquistas geradas (milhares via marcos) ---
+            function buildTierAchievements() {
+                const out = [];
+                const clickMilestones = [5e3,1e4,5e4,1e5,5e5,1e6,5e6,1e7,5e7,1e8,5e8,1e9,5e9,1e10,5e10,1e11,5e11,1e12,5e12,1e13];
+                clickMilestones.forEach((m, i) => out.push({
+                    id: `clicks_tier_${i}`, name: `Cliques: ${formatNumber(m)}`, desc: `Clique ${formatNumber(m)} vezes (vida)`, icon: '👆',
+                    check: (s) => s.lifetimeTotalClicks >= m
+                }));
+                const crystalMilestones = [1e5,5e5,1e6,5e6,1e7,5e7,1e8,5e8,1e9,5e9,1e10,5e10,1e11,5e11,1e12,5e12,1e13,5e13,1e14,5e14];
+                crystalMilestones.forEach((m, i) => out.push({
+                    id: `crystals_tier_${i}`, name: `Riqueza: ${formatNumber(m)}`, desc: `Minerar ${formatNumber(m)} cristais (vida)`, icon: '💎',
+                    check: (s) => s.lifetimeTotalCrystals >= m
+                }));
+                const prestigeMilestones = [2,3,4,6,8,10,15,20,30,50,75,100,150,200,300,500,750,1000];
+                prestigeMilestones.forEach((m, i) => out.push({
+                    id: `prestige_tier_${i}`, name: `Renascido ${m}x`, desc: `Faça prestígio ${m} vezes`, icon: '🔄',
+                    check: (s) => s.prestigeCount >= m
+                }));
+                const goldenMilestones = [10,25,50,100,200,300,500,750,1000,1500,2000,3000,5000,7500,10000];
+                goldenMilestones.forEach((m, i) => out.push({
+                    id: `golden_tier_${i}`, name: `Caçador Dourado ${m}`, desc: `Capture ${m} Cristais Dourados (vida)`, icon: '🌟',
+                    check: (s) => s.lifetimeGoldenCrystalsCaught >= m
+                }));
+                const gachaMilestones = [5,10,25,50,100,200,500,1000,2000,5000,10000];
+                gachaMilestones.forEach((m, i) => out.push({
+                    id: `gacha_tier_${i}`, name: `Sortudo ${m}`, desc: `Faça ${m} pulls no gacha`, icon: '🎰',
+                    check: (s) => s.gachaPulls >= m
+                }));
+                const lvlMilestones = [20,25,30,40,50,75,100,150,200,300,500,750,1000];
+                lvlMilestones.forEach((m, i) => out.push({
+                    id: `level_tier_${i}`, name: `Mestre Nv.${m}`, desc: `Alcance o nível ${m}`, icon: '🏅',
+                    check: (s) => getLevel(s.lifetimeTotalCrystals) >= m
+                }));
+                const upgradeMilestones = [20,30,40,60,80,100,150,200,300,500,750,1000];
+                upgradeMilestones.forEach((m, i) => out.push({
+                    id: `upgrades_tier_${i}`, name: `Colecionador ${m}`, desc: `Compre ${m} upgrades (vida)`, icon: '📈',
+                    check: (s) => s.lifetimeUpgrades >= m
+                }));
+                return out;
+            }
+            ACHIEVEMENTS_DEFS = ACHIEVEMENTS_DEFS.concat(buildTierAchievements());
+
+            // --- Itens de gacha adicionais (presente e passado) ---
+            function buildGachaItems(prefix, names, icons, type, rarity, baseBonus, percentBonus, count) {
+                const out = [];
+                for (let i = 0; i < count; i++) {
+                    out.push({
+                        id: `${prefix}_${i}`,
+                        name: names[i % names.length] + (i >= names.length ? ` ${Math.floor(i/names.length)+1}` : ''),
+                        type: type, rarity: rarity,
+                        baseBonus: baseBonus * Math.pow(2, Math.floor(i/names.length)),
+                        percentBonus: percentBonus,
+                        icon: icons[i % icons.length], source: 'gacha'
+                    });
+                }
+                return out;
+            }
+            ITEMS_DEFS = ITEMS_DEFS.concat(
+                buildGachaItems('crystal_tool', ['Picareta de Gelo','Broca Solar','Martelo Lunar','Foice Cósmica','Lâmina de Luz','Perfurator Quântico','Cetro de Cristal','Machado de Plasma','Adaga de Órbita','Picareta de Nebulosa'], CLICK_ICONS, 'click', 'common', 3, 0, 20),
+                buildGachaItems('crystal_drone', ['Drone Coletor','Estação de Coleta','Fazenda de Cristais','Sonda Autônoma','Colheitadeira','Construtor de Cristal','Torre de Extração','Besouro Minerador','Turbina de Cristal','Núcleo Coletor'], AUTO_ICONS, 'auto', 'common', 2, 0, 20),
+                buildGachaItems('rare_tool', ['Picareta de Prata','Broca de Titânio','Martelo de Obsidiana','Lâmina de Rubi','Foice de Safira'], CLICK_ICONS, 'click', 'rare', 10, 0, 10),
+                buildGachaItems('rare_drone', ['Drone de Prata','Estação de Titânio','Fazenda de Rubi','Sonda de Safira','Torre de Âmbar'], AUTO_ICONS, 'auto', 'rare', 6, 0, 10),
+                buildGachaItems('epic_tool', ['Broca de Órbita','Martelo de Galáxia','Lâmina de Supernova','Foice de Quasar','Cetro de Buraco Negro'], CLICK_ICONS, 'click', 'epic', 60, 0.06, 8),
+                buildGachaItems('epic_drone', ['Reator de Órbita','Fábrica de Galáxia','Colhedor de Supernova','Estação de Quasar','Gerador de Buraco Negro'], AUTO_ICONS, 'auto', 'epic', 60, 0.06, 8),
+                buildGachaItems('legend_tool', ['Lâmina do Vazio','Martelo do Fim dos Tempos','Picareta do Criador','Foice do Infinito','Cetro da Eternidade'], CLICK_ICONS, 'click', 'legendary', 200, 0.12, 6),
+                buildGachaItems('legend_drone', ['Núcleo do Vazio','Fábrica do Fim dos Tempos','Reator do Criador','Gerador do Infinito','Motor da Eternidade'], AUTO_ICONS, 'auto', 'legendary', 200, 0.12, 6)
+            );
+            ITEMS_DEFS_PAST = ITEMS_DEFS_PAST.concat(
+                buildGachaItems('past_tool', ['Clava de Pedra','Machado de Osso','Lança de Ferro','Martelo de Madeira','Foice de Bronze'], CLICK_ICONS, 'click', 'common', 3, 0, 15),
+                buildGachaItems('past_drone', ['Fogueira Maior','Moinho de Água','Roda de Pedra','Totem de Caça','Armadilha de Osso'], AUTO_ICONS, 'auto', 'common', 2, 0, 15),
+                buildGachaItems('past_rare_tool', ['Lança de Prata','Machado de Cobre','Clava de Âmbar','Foice de Jade'], CLICK_ICONS, 'click', 'rare', 10, 0, 8),
+                buildGachaItems('past_rare_drone', ['Moinho de Prata','Totem de Cobre','Roda de Âmbar','Fogueira de Jade'], AUTO_ICONS, 'auto', 'rare', 6, 0, 8),
+                buildGachaItems('past_epic_tool', ['Lança Estelar','Machado de Cometa','Clava de Aurora','Foice de Meteoro'], CLICK_ICONS, 'click', 'epic', 60, 0.06, 6),
+                buildGachaItems('past_epic_drone', ['Moinho Estelar','Totem de Cometa','Roda de Aurora','Fogueira de Meteoro'], AUTO_ICONS, 'auto', 'epic', 60, 0.06, 6)
+            );
+
+            // --- Contratos diários adicionais ---
+            DAILY_CONTRACTS_DEFS = DAILY_CONTRACTS_DEFS.concat([
+                { id: 'clicks_2k', desc: 'Clique 2.000 vezes', target: 2000, reward: 8, check: (s) => s.dailyStats.clicks >= 2000 },
+                { id: 'mine_500k', desc: 'Mine 500.000 cristais', target: 500000, reward: 12, check: (s) => s.dailyStats.crystals >= 500000 },
+                { id: 'golden_10', desc: 'Capture 10 Cristais Dourados', target: 10, reward: 14, check: (s) => s.dailyStats.golden >= 10 },
+                { id: 'upgrades_40', desc: 'Compre 40 upgrades', target: 40, reward: 10, check: (s) => s.dailyStats.upgrades >= 40 },
+                { id: 'level_25', desc: 'Alcance o nível 25', target: 25, reward: 16, check: (s) => getLevel(s.lifetimeTotalCrystals) >= 25 },
+                { id: 'gacha_5', desc: 'Faça 5 pulls no gacha', target: 5, reward: 9, check: (s) => s.dailyStats.gachaPulls >= 5 },
+                { id: 'prestige_1', desc: 'Faça 1 prestígio', target: 1, reward: 20, check: (s) => s.dailyStats.prestiges >= 1 },
+                { id: 'clicks_5k', desc: 'Clique 5.000 vezes', target: 5000, reward: 12, check: (s) => s.dailyStats.clicks >= 5000 },
+            ]);
+
+            // --- Melhorias temporais adicionais ---
+            TEMPORAL_UPGRADES_DEFS = TEMPORAL_UPGRADES_DEFS.concat([
+                { id: 'temp_offline', name: 'Sonho Produtivo', desc: '+25% produção offline', baseCost: 2, costMult: 2.5, effect: (s) => s.timeTravelCount >= 1, bonus: 0.25, icon: '💤' },
+                { id: 'temp_golden', name: 'Ímã Dourado', desc: '+30% chance de Cristal Dourado', baseCost: 3, costMult: 2.5, effect: (s) => s.lifetimeGoldenCrystalsCaught >= 10, bonus: 0.30, icon: '🧲' },
+                { id: 'temp_start', name: 'Início Abençoado', desc: '+50% cristais iniciais ao prestigiar', baseCost: 4, costMult: 3.0, effect: (s) => s.prestigeCount >= 3, bonus: 0.50, icon: '🌅' },
+                { id: 'temp_luck', name: 'Sorte Eterna', desc: '+20% raridade nos pulls', baseCost: 5, costMult: 3.0, effect: (s) => s.gachaPulls >= 50, bonus: 0.20, icon: '🍀' },
+                { id: 'temp_eco', name: 'Economia Temporal', desc: '-15% custo de upgrades', baseCost: 6, costMult: 3.5, effect: (s) => s.lifetimeUpgrades >= 50, bonus: 0.15, icon: '💰' },
+            ]);
+
+            // --- Rumores/NPC adicionais (mostrados em checkHints via itens especiais) ---
+            const EXTRA_NPC_LINES = [
+                'Os cristais sussurram segredos para quem sabe ouvir...',
+                'Diz a lenda que um Martelo do Criador aguarda no fim dos tempos.',
+                'Cuidado com o vazio entre as estrelas — ele também minera.',
+                'Cada prestígio te aproxima do coração da eternidade.',
+                'No passado, os ancestrais já conheciam o poder dos cristais.',
+                'Um fragmento de sorte pode mudar seu destino num piscar de olhos.',
+                'Os contratos diários são a vontade da montanha. Cumpra-os.',
+                'O tempo é apenas outra camada de cristal a ser quebrada.',
+                'Equipe dois itens e sinta o poder se multiplicar.',
+                'O gacha recompensa os persistentes — e os sortudos.',
             ];
 
             // ===== ESTADO =====
@@ -1059,6 +1223,10 @@
                     goldenCrystalPosX: 40,
                     goldenCrystalPosY: -40,
                     goldenCrystalsCaught: 0,
+                    // Contador NUNCA resetado por prestígio: usado para requisitos de
+                    // viagem no tempo e itens especiais, evitando a contradição de design
+                    // onde goldenCrystalsCaught era zerado a cada prestígio (BUG FIX A1).
+                    lifetimeGoldenCrystalsCaught: 0,
                     upgrades: Object.fromEntries((isPast ? UPGRADES_DEFS_PAST : UPGRADES_DEFS).map(u => [u.id, 0])),
                     inventory: [],
                     equippedSlots: [null, null],
@@ -1069,7 +1237,7 @@
                     dailyContractDate: '',
                     dailyContracts: [],
                     luckyFragments: 0,
-                    dailyStats: { clicks: 0, crystals: 0, golden: 0, upgrades: 0 },
+                    dailyStats: { clicks: 0, crystals: 0, golden: 0, upgrades: 0, prestiges: 0, gachaPulls: 0 },
                     autoAccumulator: 0,
                     prestigeCountPast: 0,
                     ownedSpecialItems: [],
@@ -1086,6 +1254,7 @@
                     lifetimeTotalCrystals: 0,
                     lifetimeTotalClicks: 0,
                     lifetimeUpgrades: 0,
+                    lifetimeGoldenCrystalsCaught: 0,
                     temporalFragments: 0,
                     timeTravelCount: 0,
                     soundEnabled: true,
@@ -1259,7 +1428,8 @@
                 }
 
                 const total = base * (1 + percent);
-                return Math.floor(total * getTotalMultiplier());
+                const result = Math.floor(total * getTotalMultiplier());
+                return Number.isFinite(result) ? result : 0;
             }
 
             function getAutoPower() {
@@ -1288,22 +1458,27 @@
                 }
 
                 const total = base * (1 + percent);
-                return Math.floor(total * getTotalMultiplier());
+                const result = Math.floor(total * getTotalMultiplier());
+                return Number.isFinite(result) ? result : 0;
             }
 
             function getUpgradeCost(def) {
                 const level = state.upgrades[def.id] || 0;
-                return Math.floor(def.baseCost * Math.pow(def.costMult, level));
+                const cost = def.baseCost * Math.pow(def.costMult, level);
+                if (!Number.isFinite(cost) || cost > Number.MAX_SAFE_INTEGER) return Number.MAX_SAFE_INTEGER;
+                return Math.floor(cost);
             }
 
             function getPrestigeGain() {
                 if (state.totalCrystals < 100000) return 0;
-                return Math.floor(Math.pow(state.totalCrystals / 100000, 0.7));
+                const g = Math.pow(state.totalCrystals / 100000, 0.7);
+                return Number.isFinite(g) ? Math.min(Math.floor(g), 1e6) : 0;
             }
 
             function getPrestigeGainPast() {
                 if (state.totalCrystals < 100000) return 0;
-                return Math.floor(Math.pow(state.totalCrystals / 100000, 0.6) * 1.5);
+                const g = Math.pow(state.totalCrystals / 100000, 0.6) * 1.5;
+                return Number.isFinite(g) ? Math.min(Math.floor(g), 1e6) : 0;
             }
 
             function isItemEquipped(uid) { return state.equippedSlots.includes(uid); }
@@ -1389,6 +1564,36 @@
                 }
             }
 
+            function sellAllByRarity(rarity) {
+                let total = 0, count = 0;
+                const toSell = state.inventory.filter(item => {
+                    const def = getItemDef(item.itemId);
+                    if (!def || def.rarity !== rarity) return false;
+                    if (isItemEquipped(item.uid)) return false;
+                    // Não vender itens especiais/míticos rastreados.
+                    if (def.source === 'special' || def.source === 'mythic') return false;
+                    return true;
+                });
+                for (const item of toSell) {
+                    const idx = state.inventory.indexOf(item);
+                    if (idx === -1) continue;
+                    const def = getItemDef(item.itemId);
+                    state.inventory.splice(idx, 1);
+                    total += getSellValue(def.rarity);
+                    count++;
+                }
+                if (count === 0) {
+                    showToast('⚠️', 'Nenhum item comum disponível para vender.');
+                    return;
+                }
+                state.gachaCoins += total;
+                showToast('🪙', `${count} itens vendidos por ${total} Gacha Coins.`);
+                needsRenderInventory = true;
+                needsRenderGacha = true;
+                updateDisplay();
+                saveGameDebounced();
+            }
+
             // BUG FIX #2: itens especiais/míticos agora são rastreados permanentemente em
             // ownedSpecialItems, independente de estarem ou não no inventário. Isso evita
             // o exploit de vender e reobter o item infinitamente a cada tick.
@@ -1427,7 +1632,7 @@
                     state.dailyContractDate = today;
                     state.dailyContracts = DAILY_CONTRACTS_DEFS.map(c => ({ id: c.id, completed: false, claimed: false }));
                     state.luckyFragments = 0;
-                    state.dailyStats = { clicks: 0, crystals: 0, golden: 0, upgrades: 0 };
+                    state.dailyStats = { clicks: 0, crystals: 0, golden: 0, upgrades: 0, prestiges: 0, gachaPulls: 0 };
                     needsRenderContracts = true;
                     saveGameDebounced();
                 }
@@ -1509,7 +1714,7 @@
                 if (itemDef.id === 'obsidian_pick') return Math.min(s.lifetimeTotalClicks / 10000, 1);
                 if (itemDef.id === 'quantum_miner') return Math.min(s.lifetimeTotalCrystals / 50000000, 1);
                 if (itemDef.id === 'stellar_blade') return Math.min(s.prestigeCount / 5, 1);
-                if (itemDef.id === 'singularity_core') return Math.min(s.goldenCrystalsCaught / 100, 1);
+                if (itemDef.id === 'singularity_core') return Math.min(s.lifetimeGoldenCrystalsCaught / 100, 1);
                 if (itemDef.id === 'creator_hammer') {
                     const progressClicks = Math.min(s.lifetimeTotalClicks / 5000, 1);
                     const progressPrestige = Math.min(s.prestigeCount / 8, 1);
@@ -1604,6 +1809,7 @@
             function clickGoldenCrystal(e) {
                 e.stopPropagation();
                 state.goldenCrystalsCaught += 1;
+                state.lifetimeGoldenCrystalsCaught += 1;
                 state.dailyStats.golden += 1;
                 const bonusAmount = Math.floor(getAutoPower() * 30) + getClickPower() * 20;
                 addCrystalsAndProgress(bonusAmount);
@@ -1656,6 +1862,7 @@
                 if (gain <= 0) return;
                 state.prestigePoints += gain;
                 state.prestigeCount += 1;
+                state.dailyStats.prestiges += 1;
                 const prestigeCoins = 20 + state.prestigeCount * 5;
                 state.crystals = 0;
                 state.totalCrystals = 0;
@@ -1684,6 +1891,7 @@
                 if (gain <= 0) return;
                 state.temporalFragments += gain;
                 state.prestigeCountPast = (state.prestigeCountPast || 0) + 1;
+                state.dailyStats.prestiges += 1;
                 state.crystals = 0;
                 state.totalCrystals = 0;
                 state.totalClicks = 0;
@@ -1716,6 +1924,7 @@
 
                 state.gachaCoins -= cost;
                 state.gachaPulls += pulls;
+                state.dailyStats.gachaPulls += pulls;
                 let results = [];
                 for (let i = 0; i < pulls; i++) {
                     const rarity = performGachaPull();
@@ -1772,7 +1981,7 @@
                 if (state.era === 'past') return true;
                 return state.prestigeCount >= 10 &&
                        state.inventory.some(item => item.itemId === 'eternity_heart') &&
-                       state.goldenCrystalsCaught >= 100 &&
+                       state.lifetimeGoldenCrystalsCaught >= 100 &&
                        state.lifetimeTotalCrystals >= 10000000;
             }
 
@@ -1831,6 +2040,7 @@
                     goldenCrystalPosX: state.goldenCrystalPosX,
                     goldenCrystalPosY: state.goldenCrystalPosY,
                     goldenCrystalsCaught: state.goldenCrystalsCaught,
+                    lifetimeGoldenCrystalsCaught: state.lifetimeGoldenCrystalsCaught,
                     upgrades: { ...state.upgrades },
                     inventory: state.inventory.map(item => ({ ...item })),
                     equippedSlots: [...state.equippedSlots],
@@ -1865,23 +2075,24 @@
                 state.dailyContractDate = eraState.dailyContractDate || '';
                 state.dailyContracts = Array.isArray(eraState.dailyContracts) ? eraState.dailyContracts.map(c => ({ ...c })) : [];
                 state.luckyFragments = eraState.luckyFragments || 0;
-                state.dailyStats = { clicks: 0, crystals: 0, golden: 0, upgrades: 0, ...(eraState.dailyStats && typeof eraState.dailyStats === 'object' ? eraState.dailyStats : {}) };
+                state.dailyStats = { clicks: 0, crystals: 0, golden: 0, upgrades: 0, prestiges: 0, gachaPulls: 0, ...(eraState.dailyStats && typeof eraState.dailyStats === 'object' ? eraState.dailyStats : {}) };
                 state.autoAccumulator = eraState.autoAccumulator || 0;
                 state.prestigeCountPast = eraState.prestigeCountPast || 0;
                 state.ownedSpecialItems = Array.isArray(eraState.ownedSpecialItems) ? [...eraState.ownedSpecialItems] : [];
 
-                state.crystals = eraState.crystals || 0;
-                state.totalCrystals = eraState.totalCrystals || 0;
-                state.totalClicks = eraState.totalClicks || 0;
-                state.totalUpgrades = eraState.totalUpgrades || 0;
-                state.prestigePoints = eraState.prestigePoints || 0;
-                state.prestigeCount = eraState.prestigeCount || 0;
-                state.playTime = eraState.playTime || 0;
-                state.goldenCrystalActive = eraState.goldenCrystalActive || false;
-                state.goldenCrystalExpiresAt = eraState.goldenCrystalExpiresAt || 0;
-                state.goldenCrystalPosX = eraState.goldenCrystalPosX || 40;
-                state.goldenCrystalPosY = eraState.goldenCrystalPosY || -40;
-                state.goldenCrystalsCaught = eraState.goldenCrystalsCaught || 0;
+                state.crystals = Number.isFinite(eraState.crystals) ? eraState.crystals : 0;
+                state.totalCrystals = Number.isFinite(eraState.totalCrystals) ? eraState.totalCrystals : 0;
+                state.totalClicks = Number.isFinite(eraState.totalClicks) ? eraState.totalClicks : 0;
+                state.totalUpgrades = Number.isFinite(eraState.totalUpgrades) ? eraState.totalUpgrades : 0;
+                state.prestigePoints = Number.isFinite(eraState.prestigePoints) ? eraState.prestigePoints : 0;
+                state.prestigeCount = Number.isFinite(eraState.prestigeCount) ? eraState.prestigeCount : 0;
+                state.playTime = Number.isFinite(eraState.playTime) ? eraState.playTime : 0;
+                state.goldenCrystalActive = !!eraState.goldenCrystalActive;
+                state.goldenCrystalExpiresAt = Number.isFinite(eraState.goldenCrystalExpiresAt) ? eraState.goldenCrystalExpiresAt : 0;
+                state.goldenCrystalPosX = Number.isFinite(eraState.goldenCrystalPosX) ? eraState.goldenCrystalPosX : 40;
+                state.goldenCrystalPosY = Number.isFinite(eraState.goldenCrystalPosY) ? eraState.goldenCrystalPosY : -40;
+                state.goldenCrystalsCaught = Number.isFinite(eraState.goldenCrystalsCaught) ? eraState.goldenCrystalsCaught : 0;
+                state.lifetimeGoldenCrystalsCaught = Number.isFinite(eraState.lifetimeGoldenCrystalsCaught) ? eraState.lifetimeGoldenCrystalsCaught : 0;
             }
 
             function syncStateWithEra() {
@@ -2244,6 +2455,12 @@
                     }
                 }
                 invContainer.appendChild(grid);
+                const sellAllBtn = document.createElement('button');
+                sellAllBtn.className = 'prestige-btn';
+                sellAllBtn.style.marginTop = '10px';
+                sellAllBtn.textContent = '🧹 Vender todos os itens comuns';
+                sellAllBtn.addEventListener('click', () => sellAllByRarity('common'));
+                invContainer.appendChild(sellAllBtn);
                 inventoryPanelEl.appendChild(invContainer);
 
                 inventoryPanelEl.querySelectorAll('.unequip-btn').forEach(btn => {
@@ -2482,7 +2699,12 @@
             }
 
             // ===== POOL DE PARTÍCULAS (implementação) =====
+            function prefersReducedMotion() {
+                try { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+            }
+
             function createParticles(event, count, golden) {
+                if (prefersReducedMotion()) return;
                 const rect = crystalWrapperEl.getBoundingClientRect();
                 const cx = event.clientX || rect.left + rect.width / 2;
                 const cy = event.clientY || rect.top + rect.height / 2;
@@ -2519,6 +2741,7 @@
             }
 
             function createFloatingText(event, text, golden, customColor) {
+                if (prefersReducedMotion()) return;
                 const rect = crystalWrapperEl.getBoundingClientRect();
                 const cx = event.clientX || rect.left + rect.width / 2;
                 const cy = event.clientY || rect.top + rect.height / 2 - 30;
@@ -2554,7 +2777,16 @@
             function showToast(icon, text) {
                 const toast = document.createElement('div');
                 toast.className = 'toast';
-                toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-text">${text}</span>`;
+                // BUG FIX A6: usar textContent em vez de innerHTML para evitar XSS acidental
+                // ao adicionar centenas de strings de conteúdo novas (ícones/descrições).
+                const iconEl = document.createElement('span');
+                iconEl.className = 'toast-icon';
+                iconEl.textContent = icon;
+                const textEl = document.createElement('span');
+                textEl.className = 'toast-text';
+                textEl.textContent = text;
+                toast.appendChild(iconEl);
+                toast.appendChild(textEl);
                 toastContainerEl.appendChild(toast);
                 setTimeout(() => toast.remove(), 3500);
             }
@@ -2670,6 +2902,22 @@
                 if (parsed.era !== undefined && parsed.era !== 'present' && parsed.era !== 'past') return false;
                 if (parsed.presentState !== undefined && (typeof parsed.presentState !== 'object' || parsed.presentState === null)) return false;
                 if (parsed.pastState !== undefined && (typeof parsed.pastState !== 'object' || parsed.pastState === null)) return false;
+                // BUG FIX A5: validação mínima de tipos para campos numéricos e de estado,
+                // impedindo que saves editados/turbinados quebrem o jogo (NaN/strings inválidas).
+                const numOk = (v) => v === undefined || (typeof v === 'number' && Number.isFinite(v));
+                if (!numOk(parsed.lifetimeTotalCrystals) || !numOk(parsed.lifetimeTotalClicks) ||
+                    !numOk(parsed.lifetimeUpgrades) || !numOk(parsed.lifetimeGoldenCrystalsCaught) ||
+                    !numOk(parsed.temporalFragments) || !numOk(parsed.timeTravelCount)) return false;
+                const eraOk = (era) => {
+                    if (era === undefined) return true;
+                    if (typeof era !== 'object' || era === null) return false;
+                    return numOk(era.crystals) && numOk(era.totalCrystals) && numOk(era.totalClicks) &&
+                           numOk(era.totalUpgrades) && numOk(era.prestigePoints) && numOk(era.prestigeCount) &&
+                           numOk(era.goldenCrystalsCaught) && numOk(era.autoAccumulator) &&
+                           (!era.upgrades || typeof era.upgrades === 'object') &&
+                           (!era.inventory || Array.isArray(era.inventory));
+                };
+                if (!eraOk(parsed.presentState) || !eraOk(parsed.pastState)) return false;
                 return true;
             }
 
@@ -2694,10 +2942,11 @@
                             // raiz do estado (state.lifetimeTotalCrystals etc, ver saveGame()), então
                             // precisam ser lidas diretamente da raiz do save, não de dentro de
                             // presentState/pastState.
-                            lifetimeTotalCrystals: parsed.lifetimeTotalCrystals || 0,
-                            lifetimeTotalClicks: parsed.lifetimeTotalClicks || 0,
-                            lifetimeUpgrades: parsed.lifetimeUpgrades || 0,
-                            temporalFragments: parsed.temporalFragments || 0,
+                            lifetimeTotalCrystals: Number.isFinite(parsed.lifetimeTotalCrystals) ? parsed.lifetimeTotalCrystals : 0,
+                            lifetimeTotalClicks: Number.isFinite(parsed.lifetimeTotalClicks) ? parsed.lifetimeTotalClicks : 0,
+                            lifetimeUpgrades: Number.isFinite(parsed.lifetimeUpgrades) ? parsed.lifetimeUpgrades : 0,
+                            lifetimeGoldenCrystalsCaught: Number.isFinite(parsed.lifetimeGoldenCrystalsCaught) ? parsed.lifetimeGoldenCrystalsCaught : 0,
+                            temporalFragments: Number.isFinite(parsed.temporalFragments) ? parsed.temporalFragments : 0,
                             timeTravelCount: parsed.timeTravelCount || 0,
                             soundEnabled: parsed.soundEnabled !== undefined ? parsed.soundEnabled : true,
                             hintsSeen: parsed.hintsSeen || {},
@@ -2754,11 +3003,14 @@
             }
 
             function formatNumber(num) {
+                if (!Number.isFinite(num)) return '0';
                 if (num < 1000) return Math.floor(num).toString();
-                if (num < 1e6) return (num/1e3).toFixed(1)+'K';
-                if (num < 1e9) return (num/1e6).toFixed(2)+'M';
-                if (num < 1e12) return (num/1e9).toFixed(2)+'B';
-                return (num/1e12).toFixed(2)+'T';
+                const units = ['', 'K', 'M', 'B', 'T', 'Aa', 'Ab', 'Ac', 'Ad', 'Ae', 'Af', 'Ag', 'Ah', 'Ai', 'Aj'];
+                let tier = Math.floor(Math.log10(Math.abs(num)) / 3);
+                if (tier < 1) tier = 1;
+                if (tier >= units.length) return num.toExponential(2);
+                const scaled = num / Math.pow(1000, tier);
+                return scaled.toFixed(2) + units[tier];
             }
             function formatTime(seconds) {
                 if (seconds < 60) return seconds+'s';
@@ -2835,6 +3087,10 @@
                 goldenCrystalEl.classList.remove('hidden');
                 goldenCrystalExpireTimeout = setTimeout(() => { hideGoldenCrystal(); }, GOLDEN_CRYSTAL_DURATION);
                 showToast('🌟', 'Cristal Dourado apareceu!');
+                // Pequena polida de lore: ocasionalmente o velho sábio sussurra uma linha extra.
+                if (EXTRA_NPC_LINES.length && Math.random() < 0.4) {
+                    showNPCDialog(EXTRA_NPC_LINES[Math.floor(Math.random() * EXTRA_NPC_LINES.length)]);
+                }
                 playBuySound();
             }
             function hideGoldenCrystal() {
@@ -2923,6 +3179,11 @@
                         const gain = Math.floor(autoPower * offlineSeconds * OFFLINE_EFFICIENCY);
                         addCrystalsAndProgress(gain);
                         showToast('💤', `Bem-vindo de volta! Você ganhou ${formatNumber(gain)} cristais offline.`);
+                        // BUG FIX A4: disparar desbloqueios que podem ter sido alcançados
+                        // durante o período offline (itens especiais, conquistas, dicas).
+                        checkSpecialItems();
+                        checkHints();
+                        checkAchievements();
                     }
                 }
             }
@@ -2936,6 +3197,14 @@
 
                 crystalButtonEl.addEventListener('pointerdown', (e) => { e.preventDefault(); clickCrystal(e); });
                 crystalButtonEl.setAttribute('tabindex', '0');
+                // BUG FIX A6: permitir clicar com teclado (Enter/Espaço) para acessibilidade.
+                crystalButtonEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                        e.preventDefault();
+                        const rect = crystalButtonEl.getBoundingClientRect();
+                        clickCrystal({ clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 });
+                    }
+                });
                 goldenCrystalEl.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); clickGoldenCrystal(e); });
 
                 $$('.tab').forEach(tab => {
