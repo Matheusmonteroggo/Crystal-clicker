@@ -3,7 +3,7 @@
 // functions across early/mid/late/stress scenarios to verify no explosion/NaN and
 // that production grows monotonically with bounded multiplier.
 const fs = require('fs');
-const path = '/workspace/72ca14ab-3adf-443b-afe8-e514a49fe884/sessions/agent_2ffe796d-7102-4aea-8b90-67363c4106e1/crystal-miner-corrigido.html';
+const path = '/workspace/72ca14ab-3adf-443b-afe8-e514a49fe884/sessions/agent_1a071060-e881-4243-9aeb-8b2caacb6483/crystal-miner-corrigido.html';
 const html = fs.readFileSync(path, 'utf8');
 let code = html.match(/<script>([\s\S]*)<\/script>/)[1];
 
@@ -48,10 +48,12 @@ const probe = `
     global.__api = {
       getClickPower, getAutoPower, getTotalMultiplier, getUpgradeCost,
       getPrestigeGain, getPrestigeGainPast, softCapPercent, getLevel,
-      UPGRADES_DEFS, UPGRADES_DEFS_PAST, state,
+      getRealityGain, getRealityFragmentBonus, getCosmicAscensionBonus,
+      UPGRADES_DEFS, UPGRADES_DEFS_PAST, UPGRADES_DEFS_FUTURE, state,
       setState(p){ Object.assign(state, p); },
       setUpg(id, lvl){ state.upgrades[id] = lvl; },
       setTemporalUpg(id, lvl){ if(!state.temporalUpgrades) state.temporalUpgrades={}; state.temporalUpgrades[id]=lvl; },
+      setRealityUpg(id, lvl){ if(!state.realityUpgrades) state.realityUpgrades={}; state.realityUpgrades[id]=lvl; },
     };
   }
 `;
@@ -125,6 +127,24 @@ results.push(scenario('past-mid', () => {
   api.state.upgrades = {}; api.state.temporalUpgrades = {};
   api.setUpg('past_click_mastery', 25); api.setUpg('past_auto_efficiency', 25);
   api.setUpg('stone_pick', 50); api.setUpg('bone_spear', 50); api.setUpg('amber_charm', 50); api.setUpg('time_blade', 50);
+}));
+
+// Future era: Fr + Ascensão (Parte 3)
+results.push(scenario('future', () => {
+  api.setState({ totalCrystals: 1e15, lifetimeTotalCrystals: 1e15, prestigePoints: 0, temporalFragments: 0,
+                 era:'future', realityFragments: 5e6, cosmicAscensions: 50 });
+  api.state.upgrades = {}; api.state.temporalUpgrades = {};
+  api.state.realityUpgrades = {};
+  for (const u of api.UPGRADES_DEFS_FUTURE) if (u.maxLevel) api.setUpg(u.id, u.maxLevel);
+  api.setRealityUpg('real_prod_both', 50); api.setRealityUpg('real_fr_gain', 50); api.setRealityUpg('real_golden', 50);
+}));
+
+// Future stress: unbounded Fr/Ascensão
+results.push(scenario('future-stress', () => {
+  api.setState({ totalCrystals: 1e18, lifetimeTotalCrystals: 1e18, prestigePoints: 0, temporalFragments: 0,
+                 era:'future', realityFragments: 1e9, cosmicAscensions: 1e6 });
+  api.state.upgrades = {}; api.state.temporalUpgrades = {}; api.state.realityUpgrades = {};
+  for (const u of api.UPGRADES_DEFS_FUTURE) if (u.maxLevel) api.setUpg(u.id, 1e6);
 }));
 
 console.log('=== CHECKS ===');

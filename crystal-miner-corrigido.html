@@ -731,14 +731,16 @@
         .modal-btn:active { transform: scale(0.94); }
 
         .sound-btn {
-            position: absolute; top: 10px; right: 16px; z-index: 101;
             background: var(--bg-card); border: 1px solid var(--border-color);
             border-radius: 50%; width: 36px; height: 36px; font-size: 1rem;
             cursor: pointer; color: var(--text-primary); display: flex;
-            align-items: center; justify-content: center;
+            align-items: center; justify-content: center; flex: 0 0 auto;
             transition: all 0.2s; backdrop-filter: blur(4px);
         }
         .sound-btn:active { transform: scale(0.9); }
+        #header { display: flex; flex-direction: column; gap: 8px; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .header-top .stats-row { flex: 1 1 auto; flex-wrap: wrap; }
 
         @media (min-width: 480px) {
             #crystalButton { width: 160px; height: 160px; font-size: 4.8rem; }
@@ -764,29 +766,60 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
         }
+
+        /* ===== PARTE 3: TEMA FUTURISTA (era-future) ===== */
+        body.era-future {
+            --accent-gold: #00e5ff;
+            --accent-purple: #b14bff;
+            --accent-neon: #ff3df5;
+            --text-primary: #eafcff;
+            --text-secondary: #9fd8e6;
+            --text-dim: #5f7e8a;
+            --bg-card: rgba(20, 30, 60, 0.7);
+            --border-color: rgba(0, 229, 255, 0.35);
+            background:
+                radial-gradient(1200px 600px at 20% -10%, rgba(123, 47, 247, 0.25), transparent),
+                radial-gradient(900px 500px at 90% 10%, rgba(0, 224, 255, 0.18), transparent),
+                linear-gradient(160deg, #070b1f 0%, #0d0526 60%, #06030f 100%);
+        }
+        body.era-future #crystalButton {
+            background: radial-gradient(circle at 35% 30%, #00e5ff 0%, #7b2ff7 55%, #b14bff 100%);
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.55), inset 0 0 30px rgba(177, 75, 255, 0.6);
+        }
+        body.era-future .card, body.era-future .prestige-card, body.era-future .upgrade-card, body.era-future .achievement-card, body.era-future .inventory-card {
+            border-color: rgba(0, 229, 255, 0.35);
+            box-shadow: 0 4px 18px rgba(0, 224, 255, 0.12);
+        }
+        body.era-future .tab.active {
+            background: linear-gradient(135deg, #7b2ff7, #00e0ff);
+            color: #fff;
+        }
+        body.era-future .prestige-btn { background: linear-gradient(135deg, #7b2ff7, #00e0ff); color: #fff; }
     </style>
 </head>
 <body>
 
     <header id="header">
-        <button class="sound-btn" id="soundToggle" aria-label="Ativar/desativar som">🔊</button>
-        <div class="stats-row">
-            <div class="stat-item crystals">
-                <span class="icon">💎</span>
-                <span class="value" id="crystalCount" aria-live="polite" role="status">0</span>
+        <div class="header-top">
+            <div class="stats-row">
+                <div class="stat-item crystals">
+                    <span class="icon">💎</span>
+                    <span class="value" id="crystalCount" aria-live="polite" role="status">0</span>
+                </div>
+                <div class="stat-item cps">
+                    <span class="icon">⚡</span>
+                    <span class="value" id="cpsDisplay">0</span><span>/s</span>
+                </div>
+                <div class="stat-item level">
+                    <span class="icon">⭐</span>
+                    <span>Nv <span class="value" id="levelDisplay">1</span></span>
+                </div>
+                <div class="stat-item gacha-coins">
+                    <span class="icon">🪙</span>
+                    <span class="value" id="gachaCoinCount">0</span>
+                </div>
             </div>
-            <div class="stat-item cps">
-                <span class="icon">⚡</span>
-                <span class="value" id="cpsDisplay">0</span><span>/s</span>
-            </div>
-            <div class="stat-item level">
-                <span class="icon">⭐</span>
-                <span>Nv <span class="value" id="levelDisplay">1</span></span>
-            </div>
-            <div class="stat-item gacha-coins">
-                <span class="icon">🪙</span>
-                <span class="value" id="gachaCoinCount">0</span>
-            </div>
+            <button class="sound-btn" id="soundToggle" aria-label="Ativar/desativar som">🔊</button>
         </div>
         <div class="level-bar-container">
             <div id="levelBarFill"></div>
@@ -908,6 +941,10 @@
             const OFFLINE_MAX_HOURS = 4;
             const OFFLINE_EFFICIENCY = 0.4;
             const TEMPORAL_FRAGMENT_BONUS = 0.10;
+            // ===== CONSTANTES DA ERA DO FUTURO (PARTE 3) =====
+            const REALITY_FRAGMENT_BONUS = 0.05;   // Fr -> +5% global por fragmento
+            const COSMIC_ASCENSION_BONUS = 0.20;   // Ascensão -> +20% global por nível
+            const REALITY_PRESTIGE_CAP = 5e6;      // teto de Fr por Prestígio da Realidade
 
             // ===== DEFINIÇÃO DE ITENS (PRESENTE) =====
             const ITEMS_DEFS = [
@@ -1006,6 +1043,88 @@
                 { id: 'past_auto_efficiency', name: 'Eficiência Primordial', desc: '+8% produção automática', baseCost: 80000000, costMult: 1.95, type: 'auto', percent: 0.08, maxLevel: 25, icon: '⚙️', unlock: (s) => s.prestigeCountPast >= 4 },
             ];
 
+            // ===== ITENS DA PARTE 3 (FUTURO) =====
+            const ITEMS_DEFS_FUTURE = [
+                // --- 20 gacha (8 common, 5 rare, 4 epic, 3 legendary) ---
+                { id: 'holo_pick', name: 'Picareta Holográfica', type: 'click', rarity: 'common', baseBonus: 2, icon: '🛸', source: 'gacha' },
+                { id: 'nano_drone', name: 'Drone Nano', type: 'auto', rarity: 'common', baseBonus: 1, icon: '🤖', source: 'gacha' },
+                { id: 'data_chip', name: 'Chip de Dados', type: 'click', rarity: 'common', baseBonus: 4, icon: '💠', source: 'gacha' },
+                { id: 'solar_panel', name: 'Painel Solar', type: 'auto', rarity: 'common', baseBonus: 3, icon: '🌐', source: 'gacha' },
+                { id: 'plasma_cell', name: 'Célula de Plasma', type: 'click', rarity: 'common', baseBonus: 6, icon: '⚡', source: 'gacha' },
+                { id: 'optic_cable', name: 'Cabo Óptico', type: 'auto', rarity: 'common', baseBonus: 5, icon: '📡', source: 'gacha' },
+                { id: 'micro_chip', name: 'Microchip', type: 'click', rarity: 'common', baseBonus: 8, icon: '🔮', source: 'gacha' },
+                { id: 'orbital_miner', name: 'Minerador Orbital', type: 'auto', rarity: 'common', baseBonus: 7, icon: '🛰️', source: 'gacha' },
+                { id: 'quantum_pick', name: 'Picareta Quântica', type: 'click', rarity: 'rare', baseBonus: 30, icon: '🛸', source: 'gacha' },
+                { id: 'fusion_core', name: 'Núcleo de Fusão', type: 'auto', rarity: 'rare', baseBonus: 25, icon: '⚛️', source: 'gacha' },
+                { id: 'neural_net', name: 'Rede Neural', type: 'click', rarity: 'rare', baseBonus: 40, icon: '🧠', source: 'gacha' },
+                { id: 'teleporter', name: 'Teletransportador', type: 'auto', rarity: 'rare', baseBonus: 35, icon: '🌌', source: 'gacha' },
+                { id: 'cryo_chamber', name: 'Câmara Criogênica', type: 'click', rarity: 'rare', baseBonus: 50, icon: '❄️', source: 'gacha' },
+                { id: 'phaser_drill', name: 'Broca de Fásers', type: 'click', rarity: 'epic', baseBonus: 200, percentBonus: 0.07, icon: '🔫', source: 'gacha' },
+                { id: 'antigrav_reactor', name: 'Reator Antigravidade', type: 'auto', rarity: 'epic', baseBonus: 200, percentBonus: 0.07, icon: '🌀', source: 'gacha' },
+                { id: 'tachyon_field', name: 'Campo de Táquions', type: 'click', rarity: 'epic', baseBonus: 280, percentBonus: 0.09, icon: '💫', source: 'gacha' },
+                { id: 'dyson_sphere', name: 'Esfera de Dyson', type: 'auto', rarity: 'epic', baseBonus: 280, percentBonus: 0.09, icon: '☀️', source: 'gacha' },
+                { id: 'excalibur_x', name: 'Excalibur-X', type: 'click', rarity: 'legendary', baseBonus: 800, percentBonus: 0.14, icon: '⚡', source: 'gacha' },
+                { id: 'singularity_engine', name: 'Motor de Singularidade', type: 'auto', rarity: 'legendary', baseBonus: 800, percentBonus: 0.14, icon: '🌌', source: 'gacha' },
+                { id: 'omega_crystal', name: 'Cristal Ômega', type: 'click', rarity: 'legendary', baseBonus: 1000, percentBonus: 0.16, icon: '💠', source: 'gacha' },
+                // --- 6 especiais/míticos (source:'special'/'mythic') ---
+                { id: 'quantum_core', name: 'Núcleo Quântico', type: 'auto', rarity: 'mythic', baseBonus: 1500, percentBonus: 0.20, icon: '🔮', source: 'mythic', unlockCondition: (s) => s.cosmicAscensions >= 1, hints: [
+                    { progress: 0.3, text: 'Uma energia quântica pulsa nas profundezas do tempo...' },
+                    { progress: 0.6, text: 'Dizem que apenas quem ascendeu pode senti-la...' },
+                    { progress: 0.9, text: 'O Núcleo Quântico está prestes a emergir!' }
+                ]},
+                { id: 'time_loom', name: 'Tear do Tempo', type: 'click', rarity: 'special', baseBonus: 600, percentBonus: 0.12, icon: '🕸️', source: 'special', unlockCondition: (s) => s.realityFragments >= 1000, hints: [
+                    { progress: 0.4, text: 'Fios de causalidade começam a se entrelaçar...' },
+                    { progress: 0.9, text: 'O Tear do Tempo está quase completo!' }
+                ]},
+                { id: 'singularity_blade', name: 'Lâmina da Singularidade', type: 'click', rarity: 'legendary', baseBonus: 900, percentBonus: 0.15, icon: '🗡️', source: 'special', unlockCondition: (s) => s.cosmicAscensions >= 2 && s.realityFragments >= 5000, hints: [
+                    { progress: 0.3, text: 'Uma lâmina forjada no horizonte de eventos aguarda...' },
+                    { progress: 0.7, text: 'Cada Ascensão Cósmica a afia um pouco mais...' },
+                    { progress: 0.9, text: 'A Lâmina da Singularidade está próxima!' }
+                ]},
+                { id: 'aurora_engine', name: 'Motor Aurora', type: 'auto', rarity: 'legendary', baseBonus: 900, percentBonus: 0.15, icon: '🌈', source: 'special', unlockCondition: (s) => s.realityFragments >= 10000, hints: [
+                    { progress: 0.4, text: 'Luzes do futuro distante refletem em um motor adormecido...' },
+                    { progress: 0.9, text: 'O Motor Aurora está despertando!' }
+                ]},
+                { id: 'void_crown', name: 'Coroa do Vazio', type: 'click', rarity: 'special', baseBonus: 1200, percentBonus: 0.18, icon: '👑', source: 'special', unlockCondition: (s) => s.cosmicAscensions >= 3 && s.realityFragments >= 25000, hints: [
+                    { progress: 0.3, text: 'Um vazio silencioso reivindica sua coroa...' },
+                    { progress: 0.7, text: 'O poder do nada exige ascensões supremas...' },
+                    { progress: 0.9, text: 'A Coroa do Vazio está à sua espera!' }
+                ]},
+                { id: 'genesis_heart', name: 'Coração da Gênese', type: 'auto', rarity: 'mythic', baseBonus: 2000, percentBonus: 0.25, icon: '💗', source: 'mythic', unlockCondition: (s) => s.cosmicAscensions >= 5 && s.realityFragments >= 100000, hints: [
+                    { progress: 0.3, text: 'O batimento de uma nova realidade ecoa no cosmos...' },
+                    { progress: 0.6, text: 'Apenas os que ascenderam 5 vezes o ouvem...' },
+                    { progress: 0.9, text: 'O Coração da Gênese está para renascer!' }
+                ]},
+            ];
+
+            // ===== UPGRADES DA PARTE 3 (FUTURO) =====
+            const UPGRADES_DEFS_FUTURE = [
+                // 11 click
+                { id: 'fut_click_1', name: 'Feixe de Luz', desc: '+10 por clique', baseCost: 1e12, costMult: 1.55, type: 'click', value: 10, icon: '💡', unlock: (s) => s.lifetimeTotalCrystals >= 1e9 },
+                { id: 'fut_click_2', name: 'Impulsor de Massa', desc: '+50 por clique', baseCost: 5e12, costMult: 1.58, type: 'click', value: 50, icon: '🚀', unlock: (s) => s.lifetimeTotalCrystals >= 1e10 },
+                { id: 'fut_click_3', name: 'Laser de Íons', desc: '+250 por clique', baseCost: 2e13, costMult: 1.60, type: 'click', value: 250, icon: '🔆', unlock: (s) => s.lifetimeTotalCrystals >= 1e11 },
+                { id: 'fut_click_4', name: 'Foco de Plasma', desc: '+1200 por clique', baseCost: 1e14, costMult: 1.62, type: 'click', value: 1200, icon: '🔥', unlock: (s) => s.lifetimeTotalCrystals >= 1e12 },
+                { id: 'fut_click_5', name: 'Martelo de Prótons', desc: '+6000 por clique', baseCost: 5e14, costMult: 1.65, type: 'click', value: 6000, icon: '🔨', unlock: (s) => s.lifetimeTotalCrystals >= 1e13 },
+                { id: 'fut_click_6', name: 'Canhão de Quarks', desc: '+30000 por clique', baseCost: 2e15, costMult: 1.68, type: 'click', value: 30000, icon: '🎯', unlock: (s) => s.lifetimeTotalCrystals >= 1e14 },
+                { id: 'fut_click_7', name: 'Estilhaque de Glória', desc: '+150000 por clique', baseCost: 1e16, costMult: 1.70, type: 'click', value: 150000, icon: '✨', unlock: (s) => s.lifetimeTotalCrystals >= 1e15 },
+                { id: 'fut_click_mastery', name: 'Maestria Futura de Clique', desc: '+12% por clique', baseCost: 5e13, costMult: 1.90, type: 'click', percent: 0.12, maxLevel: 25, icon: '🎯', unlock: (s) => s.cosmicAscensions >= 1 },
+                { id: 'fut_click_supreme', name: 'Supremacia Futura de Clique', desc: '+9% por clique', baseCost: 5e15, costMult: 2.00, type: 'click', percent: 0.09, maxLevel: 25, icon: '💥', unlock: (s) => s.cosmicAscensions >= 3 },
+                { id: 'fut_click_omega', name: 'Clique Ômega', desc: '+800000 por clique', baseCost: 5e16, costMult: 1.72, type: 'click', value: 800000, icon: '🌟', unlock: (s) => s.cosmicAscensions >= 5 },
+                { id: 'fut_click_genesis', name: 'Clique da Gênese', desc: '+4000000 por clique', baseCost: 2e17, costMult: 1.75, type: 'click', value: 4000000, icon: '💗', unlock: (s) => s.cosmicAscensions >= 7 },
+                // 11 auto
+                { id: 'fut_auto_1', name: 'Coletor de Íons', desc: '+10/s', baseCost: 1e12, costMult: 1.55, type: 'auto', value: 10, icon: '🛰️', unlock: (s) => s.lifetimeTotalCrystals >= 1e9 },
+                { id: 'fut_auto_2', name: 'Esteira de Nanobots', desc: '+50/s', baseCost: 5e12, costMult: 1.58, type: 'auto', value: 50, icon: '🤖', unlock: (s) => s.lifetimeTotalCrystals >= 1e10 },
+                { id: 'fut_auto_3', name: 'Fazenda Solar', desc: '+250/s', baseCost: 2e13, costMult: 1.60, type: 'auto', value: 250, icon: '🌐', unlock: (s) => s.lifetimeTotalCrystals >= 1e11 },
+                { id: 'fut_auto_4', name: 'Usina de Fusão', desc: '+1200/s', baseCost: 1e14, costMult: 1.62, type: 'auto', value: 1200, icon: '⚛️', unlock: (s) => s.lifetimeTotalCrystals >= 1e12 },
+                { id: 'fut_auto_5', name: 'Reator de Táquions', desc: '+6000/s', baseCost: 5e14, costMult: 1.65, type: 'auto', value: 6000, icon: '💫', unlock: (s) => s.lifetimeTotalCrystals >= 1e13 },
+                { id: 'fut_auto_6', name: 'Rede de Matéria Escura', desc: '+30000/s', baseCost: 2e15, costMult: 1.68, type: 'auto', value: 30000, icon: '🌑', unlock: (s) => s.lifetimeTotalCrystals >= 1e14 },
+                { id: 'fut_auto_7', name: 'Fonte de Antimassa', desc: '+150000/s', baseCost: 1e16, costMult: 1.70, type: 'auto', value: 150000, icon: '🌀', unlock: (s) => s.lifetimeTotalCrystals >= 1e15 },
+                { id: 'fut_auto_mastery', name: 'Eficiência Futura', desc: '+10% produção automática', baseCost: 5e13, costMult: 1.95, type: 'auto', percent: 0.10, maxLevel: 25, icon: '⚙️', unlock: (s) => s.cosmicAscensions >= 1 },
+                { id: 'fut_auto_supreme', name: 'Supremacia Futura', desc: '+8% produção automática', baseCost: 5e15, costMult: 2.05, type: 'auto', percent: 0.08, maxLevel: 25, icon: '🏭', unlock: (s) => s.cosmicAscensions >= 3 },
+                { id: 'fut_auto_omega', name: 'Automático Ômega', desc: '+800000/s', baseCost: 5e16, costMult: 1.72, type: 'auto', value: 800000, icon: '🌟', unlock: (s) => s.cosmicAscensions >= 5 },
+                { id: 'fut_auto_genesis', name: 'Automático da Gênese', desc: '+4000000/s', baseCost: 2e17, costMult: 1.75, type: 'auto', value: 4000000, icon: '💗', unlock: (s) => s.cosmicAscensions >= 7 },
+            ];
+
             // ===== CONQUISTAS =====
             const ACHIEVEMENTS_DEFS = [
                 { id: 'first_click', name: 'Primeiro Toque', desc: 'Clique no cristal 1 vez', icon: '👆', check: (s) => s.lifetimeTotalClicks >= 1 },
@@ -1045,9 +1164,17 @@
                 { id: 'temp_gacha', name: 'Sorte Temporal', desc: '+1 Gacha Coin por conquista', baseCost: 1, costMult: 2.0, effect: (s) => true, bonus: 1, icon: '🍀' },
             ];
 
+            // ===== MELHORIAS DA REALIDADE (FUTURO, pagas em Fr) =====
+            const REALITY_UPGRADES_DEFS = [
+                { id: 'real_prod_both', name: 'Produção Onipresente', desc: '+10% produção em todas as eras', baseCost: 100, costMult: 1.6, effect: (s) => true, bonus: 0.10, icon: '🛸' },
+                { id: 'real_fr_gain', name: 'Colheita de Realidade', desc: '+5% Fragmentos da Realidade por Ascensão', baseCost: 200, costMult: 1.8, effect: (s) => true, bonus: 0.05, icon: '💠' },
+                { id: 'real_golden', name: 'Aurora Dourada', desc: '+5% chance de Cristal Dourado (futuro)', baseCost: 300, costMult: 2.0, effect: (s) => true, bonus: 0.05, icon: '🌟' },
+            ];
+
 
             // ===== ESTADO =====
-            function createEraState(isPast = false) {
+            function createEraState(era = 'present') {
+                const isPast = era === 'past';
                 return {
                     crystals: 0,
                     totalCrystals: 0,
@@ -1066,7 +1193,7 @@
                     // viagem no tempo e itens especiais, evitando a contradição de design
                     // onde goldenCrystalsCaught era zerado a cada prestígio (BUG FIX A1).
                     lifetimeGoldenCrystalsCaught: 0,
-                    upgrades: Object.fromEntries((isPast ? UPGRADES_DEFS_PAST : UPGRADES_DEFS).map(u => [u.id, 0])),
+                    upgrades: Object.fromEntries((era === 'future' ? UPGRADES_DEFS_FUTURE : isPast ? UPGRADES_DEFS_PAST : UPGRADES_DEFS).map(u => [u.id, 0])),
                     inventory: [],
                     equippedSlots: [null, null],
                     gachaPulls: 0,
@@ -1079,6 +1206,11 @@
                     dailyStats: { clicks: 0, crystals: 0, golden: 0, upgrades: 0 },
                     autoAccumulator: 0,
                     prestigeCountPast: 0,
+                    // ===== CAMPOS DA ERA DO FUTURO =====
+                    // Fragmentos da Realidade (moeda exclusiva do futuro)
+                    realityFragments: 0,
+                    // Ascensões Cósmicas realizadas (resetado no Prestígio da Realidade)
+                    cosmicAscensions: 0,
                     ownedSpecialItems: [],
                 };
             }
@@ -1086,8 +1218,8 @@
             function defaultState() {
                 return {
                     era: 'present',
-                    presentState: createEraState(),
-                    pastState: createEraState(true),
+                    presentState: createEraState('present'),
+                    pastState: createEraState('past'),
                     // Globais
                     achievements: Object.fromEntries(ACHIEVEMENTS_DEFS.map(a => [a.id, false])),
                     lifetimeTotalCrystals: 0,
@@ -1096,6 +1228,10 @@
                     lifetimeGoldenCrystalsCaught: 0,
                     temporalFragments: 0,
                     timeTravelCount: 0,
+                    // Rastro da cadeia de 7 passos no passado (0..8). 8 = futuro liberado.
+                    futureQuestStep: 0,
+                    // Melhorias da Realidade (exclusivas do futuro, pagas em Fr)
+                    realityUpgrades: {},
                     soundEnabled: true,
                     hintsSeen: {},
                     temporalUpgrades: {},
@@ -1203,11 +1339,15 @@
 
             // ===== HELPERS =====
             function getCurrentItemsDefs() {
-                return state.era === 'past' ? ITEMS_DEFS_PAST : ITEMS_DEFS;
+                if (state.era === 'past') return ITEMS_DEFS_PAST;
+                if (state.era === 'future') return ITEMS_DEFS_FUTURE;
+                return ITEMS_DEFS;
             }
 
             function getCurrentUpgradesDefs() {
-                return state.era === 'past' ? UPGRADES_DEFS_PAST : UPGRADES_DEFS;
+                if (state.era === 'past') return UPGRADES_DEFS_PAST;
+                if (state.era === 'future') return UPGRADES_DEFS_FUTURE;
+                return UPGRADES_DEFS;
             }
 
             function getItemDef(itemId) {
@@ -1226,6 +1366,9 @@
             function getLevelBonus(level) { return (level - 1) * 0.05; }
             function getPrestigeBonus(prestigePoints) { return prestigePoints * PRESTIGE_BONUS_PER_POINT; }
             function getTemporalFragmentBonus() { return state.temporalFragments * TEMPORAL_FRAGMENT_BONUS; }
+            // ===== PARTE 3: Fragmentos da Realidade (Fr) e Ascensão Cósmica =====
+            function getRealityFragmentBonus() { return (state.realityFragments || 0) * REALITY_FRAGMENT_BONUS; }
+            function getCosmicAscensionBonus() { return (state.cosmicAscensions || 0) * COSMIC_ASCENSION_BONUS; }
 
             // Retorno decrescente para o pool de %: compõe bônus crus altos sem estourar.
             // K controla o ponto de joelho; tanh é contínua e sempre crescente (nunca trava o jogador).
@@ -1239,13 +1382,20 @@
                 const levelBonus = getLevelBonus(getLevel(state.totalCrystals));
                 const prestigeBonus = getPrestigeBonus(state.prestigePoints);
                 const temporalBonus = getTemporalFragmentBonus();
+                const realityBonus = getRealityFragmentBonus();
+                const ascensionBonus = getCosmicAscensionBonus();
                 let extraBonus = 0;
                 if (state.temporalUpgrades) {
                     if (state.temporalUpgrades.temp_prod_both) extraBonus += state.temporalUpgrades.temp_prod_both * 0.10;
                     if (state.temporalUpgrades.temp_click_both) extraBonus += state.temporalUpgrades.temp_click_both * 0.15;
                 }
+                if (state.realityUpgrades) {
+                    if (state.realityUpgrades.real_prod_both) extraBonus += state.realityUpgrades.real_prod_both * 0.10; // +10% produção (todas as eras)
+                    if (state.realityUpgrades.real_fr_gain) extraBonus += state.realityUpgrades.real_fr_gain * 0.05;       // +5% Fr por Ascensão
+                    if (state.realityUpgrades.real_golden) extraBonus += state.realityUpgrades.real_golden * 0.05;        // +5% chance golden (futuro)
+                }
                 // Soma bruta de todos os bônus aditivos do multiplicador global.
-                const rawBonus = levelBonus + prestigeBonus + temporalBonus + extraBonus;
+                const rawBonus = levelBonus + prestigeBonus + temporalBonus + realityBonus + ascensionBonus + extraBonus;
                 // Retorno decrescente: aproxima de um teto macio (SOFT_CAP) sem travar o jogador.
                 const SOFT_CAP = 1000;
                 const effBonus = SOFT_CAP * Math.tanh(rawBonus / SOFT_CAP);
@@ -1765,6 +1915,69 @@
                 saveGameDebounced();
             }
 
+            // ===== PARTE 3: PRESTÍGIO DA REALIDADE (ganha Fr) e ASCENSÃO CÓSMICA (gasta Fr) =====
+            function getRealityGain() {
+                if (state.totalCrystals < 100000) return 0;
+                const g = Math.pow(state.totalCrystals / 100000, 0.65);
+                return Number.isFinite(g) ? Math.min(Math.floor(g), REALITY_PRESTIGE_CAP) : 0;
+            }
+
+            function doRealityPrestige() {
+                const gain = getRealityGain();
+                if (gain <= 0) return;
+                state.cosmicAscensions += 1;
+                state.realityFragments += gain;
+                // Reset do progresso da era do futuro (Fr e Ascensões permanecem).
+                state.crystals = 0;
+                state.totalCrystals = 0;
+                state.totalClicks = 0;
+                state.totalUpgrades = 0;
+                state.upgrades = Object.fromEntries(getCurrentUpgradesDefs().map(u => [u.id, 0]));
+                state.autoAccumulator = 0;
+                state.goldenCrystalsCaught = 0;
+                hideGoldenCrystal();
+                playPrestigeSound();
+                showToast('🌌', `Prestígio da Realidade! +${gain} Fragmentos da Realidade! (Ascensão Cósmica #${state.cosmicAscensions})`);
+                needsRenderUpgrades = true;
+                needsRenderPrestige = true;
+                checkAchievements();
+                checkSpecialItems();
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function getCosmicAscensionCost(level) {
+                return Math.floor(1000 * Math.pow(3, level));
+            }
+
+            function buyCosmicAscension() {
+                if (state.era !== 'future') return;
+                const level = state.cosmicAscensions || 0;
+                const cost = getCosmicAscensionCost(level);
+                if (state.realityFragments < cost) return;
+                state.realityFragments -= cost;
+                state.cosmicAscensions = level + 1;
+                showToast('🌟', `Ascensão Cósmica #${state.cosmicAscensions}! Bônus global +${Math.floor(COSMIC_ASCENSION_BONUS * 100)}%`);
+                needsRenderPrestige = true;
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function buyRealityUpgrade(id) {
+                const def = REALITY_UPGRADES_DEFS.find(t => t.id === id);
+                if (!def) return;
+                const level = state.realityUpgrades?.[id] || 0;
+                const cost = Math.floor(def.baseCost * Math.pow(def.costMult, level));
+                if (state.realityFragments < cost) return;
+                state.realityFragments -= cost;
+                if (!state.realityUpgrades) state.realityUpgrades = {};
+                state.realityUpgrades[id] = level + 1;
+                showToast('🛸', `Melhoria da Realidade comprada: ${def.name}!`);
+                needsRenderPrestige = true;
+                updateDisplay();
+                saveGameDebounced();
+            }
+
             function pullGacha(amount) {
                 const isTen = amount === 10;
                 const cost = isTen ? GACHA_COST_TEN : GACHA_COST_SINGLE;
@@ -1845,6 +2058,7 @@
                 state.era = 'past';
                 state.timeTravelCount += 1;
                 showToast('🌀', 'Você viajou para o passado! Bem-vindo à Era Primordial.');
+                if (state.era === 'past') checkFutureQuest();
                 needsRenderUpgrades = true;
                 needsRenderAchievements = true;
                 needsRenderGacha = true;
@@ -1859,11 +2073,71 @@
                 saveGameDebounced();
             }
 
-            function travelToPresent() {
-                if (state.era !== 'past') return;
+            // ===== PARTE 3: CADEIA DE 7 PASSOS (PASSADO) PARA LIBERAR O FUTURO =====
+            // Definição ordenada dos passos. Cada step avalia estado do PASSADO.
+            function getFutureQuestSteps() {
+                return [
+                    { id: 1, label: 'Faça 1 Prestígio na Era Primordial', check: (s) => s.prestigeCountPast >= 1, current: (s) => s.prestigeCountPast, target: 1 },
+                    { id: 2, label: 'Acumule 1e9 cristais no passado', check: (s) => s.totalCrystals >= 1e9, current: (s) => Math.min(s.totalCrystals, 1e9), target: 1e9 },
+                    { id: 3, label: 'Compre 10 upgrades no passado', check: (s) => s.totalUpgrades >= 10, current: (s) => Math.min(s.totalUpgrades, 10), target: 10 },
+                    { id: 4, label: 'Obtenha a Sabedoria Ancestral (mítico do passado)', check: (s) => s.inventory.some(i => i.itemId === 'ancestral_wisdom'), current: (s) => s.inventory.some(i => i.itemId === 'ancestral_wisdom') ? 1 : 0, target: 1 },
+                    { id: 5, label: 'Faça 3 Prestígios na Era Primordial', check: (s) => s.prestigeCountPast >= 3, current: (s) => s.prestigeCountPast, target: 3 },
+                    { id: 6, label: 'Acumule 50 Fragmentos Temporais', check: (s) => s.temporalFragments >= 50, current: (s) => Math.min(s.temporalFragments, 50), target: 50 },
+                    { id: 7, label: 'Equipe 2 itens no passado', check: (s) => s.equippedSlots.filter(Boolean).length === 2, current: (s) => s.equippedSlots.filter(Boolean).length, target: 2 },
+                ];
+            }
+
+            function checkFutureQuest() {
+                if (state.futureQuestStep >= 8) return; // já liberado
+                // Só progride enquanto no passado (estado do passado é o `state` atual).
+                const steps = getFutureQuestSteps();
+                // O step atual é o próximo não concluído (1-based). futureQuestStep = nº de passos feitos.
+                while (state.futureQuestStep < steps.length && steps[state.futureQuestStep].check(state)) {
+                    state.futureQuestStep += 1;
+                    if (state.futureQuestStep < steps.length) {
+                        showToast('🌀', `Passo ${state.futureQuestStep}/7 concluído: ${steps[state.futureQuestStep - 1].label}!`);
+                        showNPCDialog(`Você avançou na profecia! Próximo objetivo: ${steps[state.futureQuestStep].label}`);
+                    }
+                }
+                if (state.futureQuestStep >= 8) {
+                    showToast('🌌', 'A Era do Futuro foi desbloqueada! Uma fenda temporal se abriu...');
+                    showNPCDialog('A realidade se dobra diante de você. O Futuro aguarda além do Portal!');
+                }
+                saveGameDebounced();
+            }
+
+            function canTravelToFuture() {
+                if (state.era === 'future') return true;
+                return state.futureQuestStep >= 8;
+            }
+
+            function travelToFuture() {
+                if (state.era !== 'past' || !canTravelToFuture()) return;
                 saveCurrentStateToEra('past');
+                loadStateFromEra('future');
+                state.era = 'future';
+                showToast('🌌', 'Você atravessou o véu do tempo! Bem-vindo à Era do Futuro.');
+                needsRenderUpgrades = true;
+                needsRenderAchievements = true;
+                needsRenderGacha = true;
+                needsRenderPrestige = true;
+                needsRenderInventory = true;
+                needsRenderContracts = true;
+                needsRenderRumors = true;
+                needsRenderPortal = true;
+                document.body.classList.add('era-future');
+                updateDisplay();
+                renderAll();
+                scheduleGoldenCrystal();
+                saveGameDebounced();
+            }
+
+            function travelToPresent() {
+                if (state.era !== 'past' && state.era !== 'future') return;
+                saveCurrentStateToEra(state.era);
                 loadStateFromEra('present');
                 state.era = 'present';
+                document.body.classList.remove('era-future');
                 showToast('🌟', 'Você retornou ao presente!');
                 needsRenderUpgrades = true;
                 needsRenderAchievements = true;
@@ -1908,16 +2182,19 @@
                     autoAccumulator: state.autoAccumulator,
                     prestigeCountPast: state.prestigeCountPast,
                     ownedSpecialItems: Array.isArray(state.ownedSpecialItems) ? [...state.ownedSpecialItems] : [],
+                    realityFragments: state.realityFragments || 0,
+                    cosmicAscensions: state.cosmicAscensions || 0,
                 };
                 if (era === 'present') state.presentState = eraState;
+                else if (era === 'future') state.futureState = eraState;
                 else state.pastState = eraState;
             }
 
             function loadStateFromEra(era) {
-                const eraState = era === 'present' ? state.presentState : state.pastState;
+                const eraState = era === 'present' ? state.presentState : era === 'future' ? state.futureState : state.pastState;
                 if (!eraState) return;
 
-                const defaultUpgradesDefs = era === 'present' ? UPGRADES_DEFS : UPGRADES_DEFS_PAST;
+                const defaultUpgradesDefs = era === 'present' ? UPGRADES_DEFS : era === 'future' ? UPGRADES_DEFS_FUTURE : UPGRADES_DEFS_PAST;
                 state.upgrades = { ...(eraState.upgrades && typeof eraState.upgrades === 'object' ? eraState.upgrades : Object.fromEntries(defaultUpgradesDefs.map(u => [u.id, 0]))) };
                 state.inventory = Array.isArray(eraState.inventory) ? eraState.inventory.map(item => ({ ...item })) : [];
                 state.equippedSlots = Array.isArray(eraState.equippedSlots) && eraState.equippedSlots.length === 2 ? [...eraState.equippedSlots] : [null, null];
@@ -1932,6 +2209,8 @@
                 state.autoAccumulator = eraState.autoAccumulator || 0;
                 state.prestigeCountPast = eraState.prestigeCountPast || 0;
                 state.ownedSpecialItems = Array.isArray(eraState.ownedSpecialItems) ? [...eraState.ownedSpecialItems] : [];
+                state.realityFragments = Number.isFinite(eraState.realityFragments) ? eraState.realityFragments : 0;
+                state.cosmicAscensions = Number.isFinite(eraState.cosmicAscensions) ? eraState.cosmicAscensions : 0;
 
                 state.crystals = Number.isFinite(eraState.crystals) ? eraState.crystals : 0;
                 state.totalCrystals = Number.isFinite(eraState.totalCrystals) ? eraState.totalCrystals : 0;
@@ -1950,10 +2229,13 @@
 
             function syncStateWithEra() {
                 if (state.era === 'present') {
-                    if (!state.presentState) state.presentState = createEraState();
+                    if (!state.presentState) state.presentState = createEraState('present');
                     loadStateFromEra('present');
+                } else if (state.era === 'future') {
+                    if (!state.futureState) state.futureState = createEraState('future');
+                    loadStateFromEra('future');
                 } else {
-                    if (!state.pastState) state.pastState = createEraState(true);
+                    if (!state.pastState) state.pastState = createEraState('past');
                     loadStateFromEra('past');
                 }
             }
@@ -1976,6 +2258,12 @@
                 statInventoryCount: '',
                 statTime: '',
             };
+
+            function isTabVisible(tab) {
+                const tabEl = document.querySelector('.tab[data-tab="' + tab + '"]');
+                const panel = document.getElementById(tab);
+                return !!tabEl && tabEl.classList.contains('active') && !!panel && panel.classList.contains('active');
+            }
 
             function updateDisplay() {
                 const crystals = state.crystals;
@@ -2060,23 +2348,23 @@
                 if (gacha1Btn) gacha1Btn.disabled = state.gachaCoins < GACHA_COST_SINGLE;
                 if (gacha10Btn) gacha10Btn.disabled = state.gachaCoins < GACHA_COST_TEN;
 
-                if (needsRenderPrestige) {
+                if (needsRenderPrestige && isTabVisible('prestige')) {
                     renderPrestige();
                     needsRenderPrestige = false;
                 }
-                if (needsRenderInventory) {
+                if (needsRenderInventory && isTabVisible('inventory')) {
                     renderInventory();
                     needsRenderInventory = false;
                 }
-                if (needsRenderContracts) {
+                if (needsRenderContracts && isTabVisible('contracts')) {
                     renderContracts();
                     needsRenderContracts = false;
                 }
-                if (needsRenderPortal) {
+                if (needsRenderPortal && isTabVisible('portal')) {
                     renderPortal();
                     needsRenderPortal = false;
                 }
-                if (needsRenderRumors) {
+                if (needsRenderRumors && isTabVisible('rumors')) {
                     renderRumors();
                     needsRenderRumors = false;
                 }
@@ -2133,6 +2421,14 @@
 
             function updateUpgradesAffordability() {
                 if (!upgradesListEl) return;
+                // Otimização (Parte 3, Fase 6): só atualiza se a aba de upgrades está visível
+                // e com throttle de ~300ms, evitando varrer todos os cards a cada tick de 100ms.
+                const upgradesTab = document.querySelector('.tab[data-tab="upgrades"]');
+                const upgradesTabVisible = upgradesTab && upgradesTab.classList.contains('active');
+                if (!upgradesTabVisible) return;
+                const now = Date.now();
+                if (now - (updateUpgradesAffordability._last || 0) < 300) return;
+                updateUpgradesAffordability._last = now;
                 const cards = upgradesListEl.querySelectorAll('.upgrade-card');
                 cards.forEach(card => {
                     const id = card.dataset.upgradeId;
@@ -2184,6 +2480,54 @@
 
             function renderPrestige() {
                 if (!prestigePanelEl) return;
+                if (state.era === 'future') {
+                    const realityGain = getRealityGain();
+                    const ascCost = getCosmicAscensionCost(state.cosmicAscensions || 0);
+                    const realityPanel = document.createElement('div');
+                    realityPanel.innerHTML = `
+                        <div class="prestige-card">
+                            <div class="prestige-title">🌌 Prestígio da Realidade</div>
+                            <div class="prestige-desc">Reinicie a Era do Futuro para ganhar <strong>Fragmentos da Realidade (Fr)</strong>. Cada Ascensão Cósmica aumenta permanentemente seu poder.</div>
+                            <div class="prestige-gain">💠 +<span id="realityGain">${realityGain}</span> Fragmentos da Realidade</div>
+                            <button class="prestige-btn" id="realityBtn" ${realityGain <= 0 ? 'disabled' : ''}>🌌 Fazer Prestígio da Realidade</button>
+                            <div class="prestige-bonus-display">Fragmentos da Realidade: ${formatNumber(state.realityFragments || 0)}</div>
+                        </div>
+                    `;
+                    const realityBtn = realityPanel.querySelector('#realityBtn');
+                    if (realityBtn) realityBtn.addEventListener('click', () => {
+                        showModal('Confirmar Prestígio da Realidade', 'Tem certeza? Você reiniciará a Era do Futuro e ganhará ' + realityGain + ' Fragmentos da Realidade.', () => doRealityPrestige());
+                    });
+                    prestigePanelEl.innerHTML = '';
+                    prestigePanelEl.appendChild(realityPanel);
+
+                    const ascPanel = document.createElement('div');
+                    ascPanel.className = 'prestige-card';
+                    ascPanel.innerHTML = `
+                        <div class="prestige-title">🌟 Ascensão Cósmica</div>
+                        <div class="prestige-desc">Gaste Fragmentos da Realidade para ascender permanentemente. Cada nível concede <strong>+${Math.floor(COSMIC_ASCENSION_BONUS * 100)}%</strong> de produção global. Nível atual: <strong>${state.cosmicAscensions || 0}</strong>.</div>
+                        <button class="prestige-btn" id="ascensionBtn" ${state.realityFragments < ascCost ? 'disabled' : ''}>🌟 Ascender (Custo: ${formatNumber(ascCost)} Fr)</button>
+                    `;
+                    const ascBtn = ascPanel.querySelector('#ascensionBtn');
+                    if (ascBtn) ascBtn.addEventListener('click', () => { buyCosmicAscension(); });
+                    prestigePanelEl.appendChild(ascPanel);
+
+                    const realityUpgradesSection = document.createElement('div');
+                    realityUpgradesSection.className = 'prestige-card';
+                    realityUpgradesSection.innerHTML = '<div class="prestige-title">🛸 Melhorias da Realidade</div>';
+                    for (const def of REALITY_UPGRADES_DEFS) {
+                        const level = state.realityUpgrades?.[def.id] || 0;
+                        const cost = Math.floor(def.baseCost * Math.pow(def.costMult, level));
+                        const btn = document.createElement('button');
+                        btn.className = 'prestige-btn';
+                        btn.style.marginBottom = '8px';
+                        btn.textContent = `${def.icon} ${def.name} (Nv ${level}) - Custo: ${formatNumber(cost)} Fr`;
+                        btn.disabled = state.realityFragments < cost;
+                        btn.addEventListener('click', () => { buyRealityUpgrade(def.id); });
+                        realityUpgradesSection.appendChild(btn);
+                    }
+                    prestigePanelEl.appendChild(realityUpgradesSection);
+                    return;
+                }
                 if (state.era === 'present') {
                     const gain = getPrestigeGain();
                     prestigePanelEl.innerHTML = `
@@ -2471,17 +2815,40 @@
             function renderPortal() {
                 if (!portalPanelEl) return;
                 portalPanelEl.innerHTML = '';
+
+                if (state.era === 'future') {
+                    portalPanelEl.innerHTML = `
+                        <div class="prestige-card">
+                            <div class="prestige-title">🌌 Portal do Futuro</div>
+                            <div class="prestige-desc">Você habita a Era do Futuro. Deseja retornar ao presente? Seu progresso no Futuro será preservado.</div>
+                            <button class="prestige-btn" id="travelPresentBtn">🌐 Voltar ao Presente</button>
+                            <div class="prestige-bonus-display">Fragmentos da Realidade: ${formatNumber(state.realityFragments || 0)} | Ascensões Cósmicas: ${state.cosmicAscensions || 0}</div>
+                        </div>
+                    `;
+                    const travelPresentBtn = document.getElementById('travelPresentBtn');
+                    if (travelPresentBtn) travelPresentBtn.addEventListener('click', () => {
+                        showModal('Voltar ao Presente', 'Deseja retornar ao presente? Seu progresso no Futuro será salvo.', () => travelToPresent());
+                    });
+                    return;
+                }
+
                 if (state.era === 'past') {
+                    const canFuture = canTravelToFuture();
                     portalPanelEl.innerHTML = `
                         <div class="prestige-card">
                             <div class="prestige-title">🌀 Portal Temporal</div>
                             <div class="prestige-desc">Você está na Era Primordial. Deseja retornar ao presente?</div>
                             <button class="prestige-btn" id="travelPresentBtn">🌐 Voltar ao Presente</button>
+                            ${canFuture ? '<button class="prestige-btn" id="travelFutureBtn" style="margin-top:8px;background:linear-gradient(135deg,#7b2ff7,#00e0ff);color:#fff;">🌌 Atravessar ao Futuro</button>' : ''}
                         </div>
                     `;
                     const travelPresentBtn = document.getElementById('travelPresentBtn');
                     if (travelPresentBtn) travelPresentBtn.addEventListener('click', () => {
                         showModal('Viajar ao Presente', 'Deseja retornar ao presente? Seu progresso na Era Primordial será salvo.', () => travelToPresent());
+                    });
+                    const travelFutureBtn = document.getElementById('travelFutureBtn');
+                    if (travelFutureBtn) travelFutureBtn.addEventListener('click', () => {
+                        showModal('Atravessar ao Futuro', 'Você cruzará o véu do tempo rumo à Era do Futuro. Seu progresso na Era Primordial será salvo.', () => travelToFuture());
                     });
                     return;
                 }
@@ -2495,7 +2862,6 @@
                 ];
                 
                 const canTravel = canTimeTravel();
-                
                 let reqsHtml = reqs.map(r => {
                     const progress = Math.min(r.current / r.target, 1);
                     return `
@@ -2505,21 +2871,39 @@
                         </div>
                     `;
                 }).join('');
-                
-                let desc = canTravel
-                    ? 'Uma fenda temporal se abriu! Você agora pode viajar à Era Primordial, onde novas aventuras o aguardam.'
-                    : 'Uma fenda misteriosa está se formando. Reúna os requisitos para desvendar seus segredos...';
-                
-                let btnText = canTravel ? '🌀 Viajar ao Passado' : '🌀 ???';
-                
-                portalPanelEl.innerHTML = `
+
+                let portalHtml = `
                     <div class="prestige-card">
                         <div class="prestige-title">🌀 Portal Temporal</div>
-                        <div class="prestige-desc">${desc}</div>
+                        <div class="prestige-desc">${canTravel ? 'Uma fenda temporal se abriu! Você agora pode viajar à Era Primordial, onde novas aventuras o aguardam.' : 'Uma fenda misteriosa está se formando. Reúna os requisitos para desvendar seus segredos...'}</div>
                         <div style="text-align:left;margin:10px 0;">${reqsHtml}</div>
-                        <button class="prestige-btn" id="travelPastBtn" ${canTravel ? '' : 'disabled'}>${btnText}</button>
+                        <button class="prestige-btn" id="travelPastBtn" ${canTravel ? '' : 'disabled'}>${canTravel ? '🌀 Viajar ao Passado' : '🌀 ???'}</button>
                     </div>
                 `;
+
+                // Checklist da cadeia de 7 passos (visível sempre que houver progresso)
+                if (state.futureQuestStep > 0) {
+                    const steps = getFutureQuestSteps();
+                    const stepRows = steps.map((st, i) => {
+                        const done = i < state.futureQuestStep;
+                        const current = i === state.futureQuestStep;
+                        const status = done ? '✅' : (current ? '🔶' : '⏳');
+                        return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:4px;">
+                            <span>${status} Passo ${i+1}: ${st.label}</span>
+                            <span style="color:var(--text-secondary);">${formatNumber(st.current(state))}/${formatNumber(st.target)}</span>
+                        </div>`;
+                    }).join('');
+                    portalHtml += `
+                        <div class="prestige-card">
+                            <div class="prestige-title">🌌 Profecia do Futuro (${Math.min(state.futureQuestStep,7)}/7)</div>
+                            <div class="prestige-desc">Aprofunde-se no passado para completar a cadeia e abrir a Era do Futuro.</div>
+                            <div style="text-align:left;margin:10px 0;">${stepRows}</div>
+                            ${state.futureQuestStep >= 8 ? '<div style="color:var(--accent-gold);font-weight:700;text-align:center;">🚀 Era do Futuro DESBLOQUEADA! Viaje ao passado e atravesse.</div>' : ''}
+                        </div>
+                    `;
+                }
+
+                portalPanelEl.innerHTML = portalHtml;
                 
                 if (canTravel) {
                     const travelPastBtn = document.getElementById('travelPastBtn');
@@ -2762,15 +3146,17 @@
             // localStorage ou de um código importado pelo usuário.
             function isValidSaveShape(parsed) {
                 if (!parsed || typeof parsed !== 'object') return false;
-                if (parsed.era !== undefined && parsed.era !== 'present' && parsed.era !== 'past') return false;
+                if (parsed.era !== undefined && parsed.era !== 'present' && parsed.era !== 'past' && parsed.era !== 'future') return false;
                 if (parsed.presentState !== undefined && (typeof parsed.presentState !== 'object' || parsed.presentState === null)) return false;
                 if (parsed.pastState !== undefined && (typeof parsed.pastState !== 'object' || parsed.pastState === null)) return false;
+                if (parsed.futureState !== undefined && (typeof parsed.futureState !== 'object' || parsed.futureState === null)) return false;
                 // BUG FIX A5: validação mínima de tipos para campos numéricos e de estado,
                 // impedindo que saves editados/turbinados quebrem o jogo (NaN/strings inválidas).
                 const numOk = (v) => v === undefined || (typeof v === 'number' && Number.isFinite(v));
                 if (!numOk(parsed.lifetimeTotalCrystals) || !numOk(parsed.lifetimeTotalClicks) ||
                     !numOk(parsed.lifetimeUpgrades) || !numOk(parsed.lifetimeGoldenCrystalsCaught) ||
-                    !numOk(parsed.temporalFragments) || !numOk(parsed.timeTravelCount)) return false;
+                    !numOk(parsed.temporalFragments) || !numOk(parsed.timeTravelCount) ||
+                    !numOk(parsed.futureQuestStep)) return false;
                 const eraOk = (era) => {
                     if (era === undefined) return true;
                     if (typeof era !== 'object' || era === null) return false;
@@ -2780,7 +3166,7 @@
                            (!era.upgrades || typeof era.upgrades === 'object') &&
                            (!era.inventory || Array.isArray(era.inventory));
                 };
-                if (!eraOk(parsed.presentState) || !eraOk(parsed.pastState)) return false;
+                if (!eraOk(parsed.presentState) || !eraOk(parsed.pastState) || !eraOk(parsed.futureState)) return false;
                 return true;
             }
 
@@ -2797,8 +3183,9 @@
                         }
                         const merged = {
                             era: parsed.era || 'present',
-                            presentState: { ...createEraState(), ...(parsed.presentState || {}) },
-                            pastState: { ...createEraState(true), ...(parsed.pastState || {}) },
+                            presentState: { ...createEraState('present'), ...(parsed.presentState || {}) },
+                            pastState: { ...createEraState('past'), ...(parsed.pastState || {}) },
+                            futureState: { ...createEraState('future'), ...(parsed.futureState || {}) },
                             achievements: parsed.achievements || {},
                             // BUG FIX #1: as estatísticas globais de vida (lifetimeTotalCrystals,
                             // lifetimeTotalClicks, lifetimeUpgrades) e as conquistas são salvas na
@@ -2811,6 +3198,8 @@
                             lifetimeGoldenCrystalsCaught: Number.isFinite(parsed.lifetimeGoldenCrystalsCaught) ? parsed.lifetimeGoldenCrystalsCaught : 0,
                             temporalFragments: Number.isFinite(parsed.temporalFragments) ? parsed.temporalFragments : 0,
                             timeTravelCount: parsed.timeTravelCount || 0,
+                            futureQuestStep: Number.isFinite(parsed.futureQuestStep) ? parsed.futureQuestStep : 0,
+                            realityUpgrades: parsed.realityUpgrades || {},
                             soundEnabled: parsed.soundEnabled !== undefined ? parsed.soundEnabled : true,
                             hintsSeen: parsed.hintsSeen || {},
                             temporalUpgrades: parsed.temporalUpgrades || {},
@@ -2839,6 +3228,7 @@
                         // Garantir chaves de upgrades
                         ensureUpgrades(merged.presentState, UPGRADES_DEFS);
                         ensureUpgrades(merged.pastState, UPGRADES_DEFS_PAST);
+                        ensureUpgrades(merged.futureState, UPGRADES_DEFS_FUTURE);
 
                         // Garantir conquistas globais
                         ensureAchievements(merged);
@@ -2854,6 +3244,18 @@
                         if (typeof merged.pastState.dailyStats !== 'object' || merged.pastState.dailyStats === null) merged.pastState.dailyStats = { clicks:0, crystals:0, golden:0, upgrades:0 };
                         if (!Array.isArray(merged.presentState.ownedSpecialItems)) merged.presentState.ownedSpecialItems = [];
                         if (!Array.isArray(merged.pastState.ownedSpecialItems)) merged.pastState.ownedSpecialItems = [];
+
+                        // Normalizar estado do futuro (save-compat: futuroState ausente em saves antigos)
+                        if (!Array.isArray(merged.futureState.inventory)) merged.futureState.inventory = [];
+                        if (!Array.isArray(merged.futureState.equippedSlots) || merged.futureState.equippedSlots.length !== 2) merged.futureState.equippedSlots = [null, null];
+                        if (!Array.isArray(merged.futureState.dailyContracts)) merged.futureState.dailyContracts = [];
+                        if (typeof merged.futureState.dailyStats !== 'object' || merged.futureState.dailyStats === null) merged.futureState.dailyStats = { clicks:0, crystals:0, golden:0, upgrades:0 };
+                        if (!Array.isArray(merged.futureState.ownedSpecialItems)) merged.futureState.ownedSpecialItems = [];
+                        if (!Number.isFinite(merged.futureState.realityFragments)) merged.futureState.realityFragments = 0;
+                        if (!Number.isFinite(merged.futureState.cosmicAscensions)) merged.futureState.cosmicAscensions = 0;
+                        if (typeof merged.realityUpgrades !== 'object' || merged.realityUpgrades === null) merged.realityUpgrades = {};
+                        // futureQuestStep deve ficar em [0,8]
+                        if (!Number.isInteger(merged.futureQuestStep) || merged.futureQuestStep < 0 || merged.futureQuestStep > 8) merged.futureQuestStep = 0;
 
                         return merged;
                     }
@@ -2915,18 +3317,19 @@
                     checkSpecialItems();
                     checkHints();
                     checkAchievements();
+                    if (state.era === 'past') checkFutureQuest();
                 }
 
                 updateDisplay();
                 updateUpgradesAffordability();
-                if (needsRenderUpgrades) renderUpgrades();
-                if (needsRenderAchievements) renderAchievements();
-                if (needsRenderGacha) renderGacha();
-                if (needsRenderPrestige) renderPrestige();
-                if (needsRenderInventory) renderInventory();
-                if (needsRenderContracts) renderContracts();
-                if (needsRenderRumors) renderRumors();
-                if (needsRenderPortal) renderPortal();
+                if (needsRenderUpgrades && isTabVisible('upgrades')) renderUpgrades();
+                if (needsRenderAchievements && isTabVisible('achievements')) renderAchievements();
+                if (needsRenderGacha && isTabVisible('gacha')) renderGacha();
+                if (needsRenderPrestige && isTabVisible('prestige')) renderPrestige();
+                if (needsRenderInventory && isTabVisible('inventory')) renderInventory();
+                if (needsRenderContracts && isTabVisible('contracts')) renderContracts();
+                if (needsRenderRumors && isTabVisible('rumors')) renderRumors();
+                if (needsRenderPortal && isTabVisible('portal')) renderPortal();
                 if (now - state.lastSave > SAVE_INTERVAL) saveGame();
             }
 
@@ -3051,6 +3454,9 @@
                 initParticlePool();
                 initFloatingTextPool();
 
+                // PARTE 3: restaura o tema futurista se o save estava no futuro.
+                if (state.era === 'future') document.body.classList.add('era-future');
+
                 setInterval(gameLoop, 100);
                 setInterval(contractCheckInterval, 1000);
 
@@ -3073,18 +3479,15 @@
                         tab.classList.add('active');
                         tab.setAttribute('aria-selected', 'true');
                         document.getElementById(tab.dataset.tab).classList.add('active');
-                        if (tab.dataset.tab === 'contracts') {
-                            needsRenderContracts = true;
-                            renderContracts();
-                        }
-                        if (tab.dataset.tab === 'rumors') {
-                            needsRenderRumors = true;
-                            renderRumors();
-                        }
-                        if (tab.dataset.tab === 'portal') {
-                            needsRenderPortal = true;
-                            renderPortal();
-                        }
+                        const t = tab.dataset.tab;
+                        if (t === 'contracts') { needsRenderContracts = true; renderContracts(); }
+                        if (t === 'rumors') { needsRenderRumors = true; renderRumors(); }
+                        if (t === 'portal') { needsRenderPortal = true; renderPortal(); }
+                        if (t === 'upgrades') { needsRenderUpgrades = true; renderUpgrades(); }
+                        if (t === 'gacha') { needsRenderGacha = true; renderGacha(); }
+                        if (t === 'achievements') { needsRenderAchievements = true; renderAchievements(); }
+                        if (t === 'inventory') { needsRenderInventory = true; renderInventory(); }
+                        if (t === 'prestige') { needsRenderPrestige = true; renderPrestige(); }
                     });
                 });
 
