@@ -1,0 +1,3033 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a1a">
+    <title>💎 Crystal Miner - Clicker Game</title>
+    <style>
+        /* ... (estilos mantidos, sem alterações) ... */
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12122a;
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --bg-card-hover: rgba(255, 255, 255, 0.12);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --border-glow: rgba(0, 255, 255, 0.5);
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0cc;
+            --text-dim: #707090;
+            --accent-cyan: #00ffff;
+            --accent-magenta: #ff00ff;
+            --accent-gold: #ffd700;
+            --accent-green: #00ff88;
+            --accent-orange: #ff8800;
+            --accent-red: #ff4466;
+            --shadow-glow: 0 0 30px rgba(0, 255, 255, 0.3);
+            --shadow-glow-strong: 0 0 60px rgba(0, 255, 255, 0.6);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-xs: 6px;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            touch-action: manipulation;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+            background: radial-gradient(ellipse at 50% 20%, #1a1a3e 0%, #0a0a1a 60%);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.3), transparent),
+                        radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.2), transparent),
+                        radial-gradient(2px 2px at 50% 40%, rgba(255,255,255,0.3), transparent),
+                        radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.2), transparent),
+                        radial-gradient(2px 2px at 90% 10%, rgba(255,255,255,0.25), transparent);
+            background-size: 200% 200%;
+            animation: starDrift 30s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes starDrift {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        #header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 16px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+            backdrop-filter: blur(4px);
+        }
+
+        .stat-item .icon { font-size: 1.1rem; }
+        .stat-item .value { color: var(--text-primary); font-size: 0.9rem; font-weight: 700; }
+        .stat-item.crystals .value { color: var(--accent-cyan); text-shadow: 0 0 12px rgba(0,255,255,0.6); }
+        .stat-item.cps .value { color: var(--accent-gold); text-shadow: 0 0 12px rgba(255,215,0,0.6); }
+        .stat-item.level .value { color: var(--accent-magenta); text-shadow: 0 0 12px rgba(255,0,255,0.6); }
+        .stat-item.gacha-coins .value { color: var(--accent-orange); text-shadow: 0 0 12px rgba(255,136,0,0.6); }
+
+        .level-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        #levelBarFill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px 12px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        #crystalArea {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 0;
+            position: relative;
+            min-height: 260px;
+        }
+
+        #crystalWrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #crystalWrapper::before,
+        #crystalWrapper::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        #crystalWrapper::before {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(0,255,255,0.2) 0%, transparent 70%);
+            animation: pulseRing 2.5s ease-in-out infinite;
+        }
+        #crystalWrapper::after {
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(255,0,255,0.12) 0%, transparent 70%);
+            animation: pulseRing 3.5s ease-in-out infinite reverse;
+        }
+        @keyframes pulseRing {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        #crystalButton {
+            width: 140px;
+            height: 140px;
+            border: none;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, rgba(0,255,255,0.4) 0%, rgba(0,255,255,0.15) 40%, rgba(255,0,255,0.2) 70%, rgba(255,0,255,0.35) 100%);
+            box-shadow: 0 0 40px rgba(0,255,255,0.5), 0 0 80px rgba(255,0,255,0.3), inset 0 0 30px rgba(255,255,255,0.2), 0 4px 24px rgba(0,0,0,0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.2rem;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.1s ease, box-shadow 0.15s ease;
+            animation: crystalFloat 3s ease-in-out infinite;
+            border: 3px solid rgba(255,255,255,0.4);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(0,255,255,0.7));
+        }
+        #crystalButton:active {
+            transform: scale(0.88) !important;
+            box-shadow: 0 0 60px rgba(0,255,255,0.7), 0 0 120px rgba(255,0,255,0.5), inset 0 0 20px rgba(255,255,255,0.3), 0 2px 12px rgba(0,0,0,0.5);
+            transition: transform 0.05s ease, box-shadow 0.08s ease;
+        }
+        @keyframes crystalFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        #crystalButton .shine {
+            position: absolute;
+            top: 12%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: shineMove 4s ease-in-out infinite;
+        }
+        @keyframes shineMove {
+            0%, 100% { transform: translateX(0) rotate(0deg); opacity: 0.8; }
+            50% { transform: translateX(18px) rotate(5deg); opacity: 1; }
+        }
+
+        #clickPowerDisplay {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+        }
+        #clickPowerDisplay span { color: var(--accent-cyan); font-weight: 700; }
+
+        #goldenCrystal {
+            position: absolute;
+            z-index: 10;
+            font-size: 2.8rem;
+            cursor: pointer;
+            animation: goldenPulse 0.8s ease-in-out infinite, goldenFloat 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255,215,0,0.9));
+            transition: transform 0.1s ease;
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #goldenCrystal:active { transform: scale(0.8) !important; }
+        @keyframes goldenPulse {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(255,215,0,0.7)); }
+            50% { filter: drop-shadow(0 0 40px rgba(255,215,0,1)); }
+        }
+        @keyframes goldenFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        #goldenCrystal.hidden { display: none; }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            border-radius: 50%;
+            z-index: 50;
+            animation: particleFly 0.8s ease-out forwards;
+        }
+        @keyframes particleFly {
+            0% { opacity: 1; transform: translate(0,0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.2); }
+        }
+        .floating-text {
+            position: fixed;
+            pointer-events: none;
+            z-index: 60;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0,255,255,0.8), 0 2px 4px rgba(0,0,0,0.5);
+            animation: floatUp 1s ease-out forwards;
+        }
+        .floating-text.golden {
+            color: var(--accent-gold);
+            font-size: 1.4rem;
+            text-shadow: 0 0 20px rgba(255,215,0,0.9), 0 2px 4px rgba(0,0,0,0.6);
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            60% { opacity: 1; transform: translateY(-40px) scale(1.1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+        }
+
+        #tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        #tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            flex: 1;
+            min-width: 60px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            padding: 10px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+            font-family: var(--font);
+            letter-spacing: 0.3px;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+        .tab.active {
+            background: rgba(0,255,255,0.15);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0,255,255,0.15);
+        }
+        .tab:not(.active):hover { color: var(--text-secondary); background: var(--bg-card-hover); }
+        .tab .badge {
+            position: absolute;
+            top: -2px;
+            right: 4px;
+            background: var(--accent-gold);
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 700;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(255,215,0,0.6);
+        }
+        .tab .badge.hidden { display: none; }
+
+        #tabContent {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.2) transparent;
+            padding-bottom: calc(20px + var(--safe-bottom));
+        }
+        #tabContent::-webkit-scrollbar { width: 4px; }
+        #tabContent::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+
+        .tab-panel { display: none; animation: fadeIn 0.3s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Upgrades */
+        #upgradesList { display: flex; flex-direction: column; gap: 8px; }
+        .upgrade-filter {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .upgrade-filter-btn {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upgrade-filter-btn.active {
+            background: rgba(0,255,255,0.15);
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0,255,255,0.2);
+        }
+        .upgrade-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(4px);
+        }
+        .upgrade-card:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.3); }
+        .upgrade-card:active { transform: scale(0.97); transition: transform 0.08s ease; }
+        .upgrade-card.affordable { border-color: rgba(0,255,255,0.6); box-shadow: 0 0 20px rgba(0,255,255,0.2); }
+        .upgrade-card.not-affordable { opacity: 0.55; cursor: not-allowed; }
+        .upgrade-card.purchased { animation: cardPurchased 0.3s ease; border-color: var(--accent-gold); }
+        @keyframes cardPurchased {
+            0% { transform: scale(1); background: rgba(255,215,0,0.2); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        .upgrade-icon { font-size: 2rem; min-width: 48px; text-align: center; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
+        .upgrade-info { flex: 1; }
+        .upgrade-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+        .upgrade-desc { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px; }
+        .upgrade-level { font-size: 0.7rem; color: var(--accent-magenta); font-weight: 600; }
+        .upgrade-cost { text-align: right; min-width: 70px; }
+        .upgrade-cost .cost-value { font-size: 0.95rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+        .upgrade-cost .cost-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .upgrade-card .glow-bg {
+            position: absolute; top: -50%; right: -30%; width: 80%; height: 200%;
+            background: radial-gradient(ellipse, rgba(0,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none; transition: opacity 0.3s ease; opacity: 0;
+        }
+        .upgrade-card.affordable .glow-bg { opacity: 1; }
+
+        /* Conquistas */
+        #achievementsList { display: grid; grid-template-columns: 1fr; gap: 6px; }
+        .achievement-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+        .achievement-card.unlocked { border-color: rgba(255,215,0,0.6); background: rgba(255,215,0,0.1); box-shadow: 0 0 16px rgba(255,215,0,0.2); }
+        .achievement-card.locked { opacity: 0.45; }
+        .achievement-icon { font-size: 1.5rem; }
+        .achievement-info .ach-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
+        .achievement-info .ach-desc { font-size: 0.7rem; color: var(--text-secondary); }
+
+        /* Prestígio */
+        #prestigePanel { display: flex; flex-direction: column; gap: 12px; }
+        .prestige-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+        .prestige-title { font-size: 1.2rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 8px; }
+        .prestige-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+        .prestige-gain { font-size: 1.5rem; font-weight: 700; color: var(--accent-cyan); margin: 10px 0; }
+        .prestige-btn {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a1a; border: none; border-radius: var(--radius);
+            padding: 14px 24px; font-size: 1rem; font-weight: 700; cursor: pointer;
+            transition: all 0.25s ease; font-family: var(--font); letter-spacing: 0.5px;
+            box-shadow: 0 4px 20px rgba(255,215,0,0.4);
+        }
+        .prestige-btn:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(255,215,0,0.3); }
+        .prestige-btn:disabled { background: var(--bg-card); color: var(--text-dim); cursor: not-allowed; box-shadow: none; border: 1px solid var(--border-color); }
+        .prestige-bonus-display { font-size: 0.85rem; color: var(--accent-green); font-weight: 600; margin-top: 8px; }
+
+        /* Stats */
+        #statsPanel { display: flex; flex-direction: column; gap: 8px; }
+        .stat-row {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            backdrop-filter: blur(4px);
+        }
+        .stat-row .stat-label { color: var(--text-secondary); }
+        .stat-row .stat-value { font-weight: 700; color: var(--text-primary); }
+
+        /* Gacha */
+        #gachaPanel { display: flex; flex-direction: column; gap: 12px; }
+        .gacha-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+        .gacha-title { font-size: 1.3rem; font-weight: 700; color: var(--accent-magenta); margin-bottom: 8px; }
+        .gacha-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; }
+        .gacha-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .gacha-btn {
+            background: linear-gradient(135deg, #ff00ff, #8800aa);
+            color: #fff; border: none; border-radius: var(--radius-sm);
+            padding: 12px 20px; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s ease; font-family: var(--font);
+            box-shadow: 0 4px 16px rgba(255,0,255,0.3);
+        }
+        .gacha-btn:active { transform: scale(0.94); }
+        .gacha-btn:disabled { background: var(--bg-card); color: var(--text-dim); cursor: not-allowed; box-shadow: none; border: 1px solid var(--border-color); }
+        .gacha-collection { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+        .gacha-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xs);
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .gacha-item .level { color: var(--accent-gold); font-weight: 700; }
+        .gacha-bonus { font-size: 0.85rem; color: var(--accent-green); margin-top: 8px; font-weight: 600; }
+
+        /* Inventário */
+        #inventoryPanel { display: flex; flex-direction: column; gap: 12px; }
+        .inventory-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            backdrop-filter: blur(4px);
+        }
+        .inventory-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 10px; text-align: center; }
+        .equipped-slots { display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; }
+        .equipped-slot {
+            width: 80px; height: 100px;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            background: rgba(0,0,0,0.2);
+        }
+        .equipped-slot .item-icon { font-size: 2rem; }
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+        }
+        .inventory-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xs);
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .inventory-item:hover { background: var(--bg-card-hover); }
+        .inventory-item.equipped { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(0,255,255,0.3); }
+        .inventory-item .item-rarity { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; }
+        .inventory-item .item-icon { font-size: 1.8rem; }
+        .inventory-item .item-name { font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+        .inventory-item .item-bonus { font-size: 0.65rem; color: var(--text-secondary); }
+        .sell-btn {
+            display: block;
+            margin-top: 4px;
+            padding: 2px 6px;
+            font-size: 0.6rem;
+            background: var(--accent-red);
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .rarity-common { color: #aaaaaa; }
+        .rarity-rare { color: #00aaff; }
+        .rarity-epic { color: #aa00ff; }
+        .rarity-legendary { color: #ffaa00; }
+        .rarity-mythic { color: #ff00ff; }
+
+        /* Contratos */
+        .contract-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        .contract-card.completed {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0,255,255,0.2);
+        }
+        .contract-card.claimed {
+            border-color: var(--accent-green);
+            background: rgba(0,255,136,0.05);
+        }
+        .claim-btn {
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-xs);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 6px;
+            font-family: var(--font);
+        }
+        .claim-btn:active { transform: scale(0.94); }
+        .claim-btn:disabled { background: var(--bg-card); color: var(--text-dim); cursor: not-allowed; }
+
+        /* Rumores */
+        .rumor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin-bottom: 8px;
+        }
+        .rumor-card.locked { opacity: 0.6; }
+        .rumor-card.unlocked { border-color: var(--accent-gold); background: rgba(255,215,0,0.1); }
+        .rumor-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+        .rumor-hint { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px; }
+        .rumor-progress { font-size: 0.7rem; color: var(--accent-cyan); }
+
+        /* NPC Dialog */
+        .npc-dialog {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20,20,40,0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,215,0,0.5);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            z-index: 400;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastIn 0.4s ease;
+            max-width: 90%;
+            box-shadow: 0 0 30px rgba(255,215,0,0.3);
+        }
+        .npc-dialog .npc-icon { font-size: 2rem; }
+        .npc-dialog .npc-text { font-size: 0.85rem; color: var(--text-primary); line-height: 1.4; flex: 1; }
+        .npc-dialog .npc-close {
+            background: none; border: none; color: var(--text-dim);
+            font-size: 1.2rem; cursor: pointer; padding: 4px;
+        }
+        .npc-dialog.hidden { display: none; }
+
+        #toastContainer {
+            position: fixed; top: 80px; right: 12px; z-index: 200;
+            display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: 300px;
+        }
+        .toast {
+            background: rgba(20,20,40,0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,215,0,0.5);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            display: flex; align-items: center; gap: 10px;
+            animation: toastIn 0.4s ease, toastOut 0.4s ease 3s forwards;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.2);
+            pointer-events: auto;
+        }
+        .toast-icon { font-size: 1.6rem; }
+        .toast-text { font-size: 0.78rem; font-weight: 600; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(50px); } }
+
+        #modalOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75); z-index: 300;
+            display: flex; align-items: center; justify-content: center;
+            animation: fadeIn 0.25s ease;
+        }
+        #modalOverlay.hidden { display: none; }
+        #modal {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,215,0,0.4);
+            border-radius: var(--radius); padding: 24px 20px;
+            max-width: 360px; width: 90%; text-align: center;
+            box-shadow: 0 0 50px rgba(255,215,0,0.2), 0 20px 60px rgba(0,0,0,0.6);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        #modal h3 { font-size: 1.2rem; color: var(--accent-gold); margin-bottom: 10px; }
+        #modal p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 10px 18px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-family: var(--font); font-size: 0.85rem; transition: all 0.2s ease; }
+        .modal-btn.confirm { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a1a; }
+        .modal-btn.cancel { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .modal-btn:active { transform: scale(0.94); }
+
+        .sound-btn {
+            position: absolute; top: 10px; right: 16px; z-index: 101;
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 36px; height: 36px; font-size: 1rem;
+            cursor: pointer; color: var(--text-primary); display: flex;
+            align-items: center; justify-content: center;
+            transition: all 0.2s; backdrop-filter: blur(4px);
+        }
+        .sound-btn:active { transform: scale(0.9); }
+
+        @media (min-width: 480px) {
+            #crystalButton { width: 160px; height: 160px; font-size: 4.8rem; }
+            #crystalWrapper { width: 230px; height: 230px; }
+            #crystalWrapper::before { width: 200px; height: 200px; }
+            #crystalWrapper::after { width: 270px; height: 270px; }
+            .stat-item { font-size: 0.9rem; padding: 8px 16px; }
+            .stat-item .value { font-size: 1.05rem; }
+        }
+        @media (min-width: 768px) {
+            #main { max-width: 700px; padding: 24px 20px 16px; gap: 16px; }
+            #crystalArea { min-height: 320px; }
+            #crystalButton { width: 180px; height: 180px; font-size: 5.2rem; }
+            #crystalWrapper::before { width: 220px; height: 220px; }
+            #crystalWrapper::after { width: 300px; height: 300px; }
+            .tab { font-size: 0.85rem; padding: 12px 10px; }
+            .upgrade-card { padding: 16px 18px; }
+            .upgrade-icon { font-size: 2.2rem; }
+            .upgrade-name { font-size: 0.95rem; }
+            .upgrade-desc { font-size: 0.8rem; }
+            #achievementsList { grid-template-columns: 1fr 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header">
+        <button class="sound-btn" id="soundToggle" aria-label="Ativar/desativar som">🔊</button>
+        <div class="stats-row">
+            <div class="stat-item crystals">
+                <span class="icon">💎</span>
+                <span class="value" id="crystalCount">0</span>
+            </div>
+            <div class="stat-item cps">
+                <span class="icon">⚡</span>
+                <span class="value" id="cpsDisplay">0</span><span>/s</span>
+            </div>
+            <div class="stat-item level">
+                <span class="icon">⭐</span>
+                <span>Nv <span class="value" id="levelDisplay">1</span></span>
+            </div>
+            <div class="stat-item gacha-coins">
+                <span class="icon">🪙</span>
+                <span class="value" id="gachaCoinCount">0</span>
+            </div>
+        </div>
+        <div class="level-bar-container">
+            <div id="levelBarFill"></div>
+        </div>
+    </header>
+
+    <main id="main">
+        <section id="crystalArea">
+            <div id="crystalWrapper">
+                <button id="crystalButton" aria-label="Minerar cristal (toque aqui)">
+                    <span class="shine"></span>
+                    💎
+                </button>
+                <div id="goldenCrystal" class="hidden" aria-label="Cristal Dourado (bônus especial)">🌟</div>
+            </div>
+            <div id="clickPowerDisplay">
+                ⛏️ Click: +<span id="clickPowerValue">1</span> cristais
+            </div>
+        </section>
+
+        <nav id="tabs" aria-label="Abas do jogo">
+            <button class="tab active" data-tab="upgrades" aria-selected="true" aria-label="Aba de upgrades">⬆️ Upgrades</button>
+            <button class="tab" data-tab="inventory" aria-selected="false" aria-label="Aba de inventário">🎒 Inv</button>
+            <button class="tab" data-tab="gacha" aria-selected="false" aria-label="Aba do gacha">🎰 Gacha</button>
+            <button class="tab" data-tab="achievements" aria-selected="false" aria-label="Aba de conquistas">🏆 Conquistas</button>
+            <button class="tab" data-tab="prestige" aria-selected="false" aria-label="Aba de prestígio">🌟 Prestígio</button>
+            <button class="tab" data-tab="stats" aria-selected="false" aria-label="Aba de estatísticas">📊 Stats</button>
+            <button class="tab" data-tab="contracts" aria-selected="false" aria-label="Aba de contratos diários">📜 Contratos</button>
+            <button class="tab" data-tab="rumors" aria-selected="false" aria-label="Aba de rumores">📖 Rumores</button>
+            <button class="tab" data-tab="portal" aria-selected="false" aria-label="Aba do portal temporal">🌀 Portal</button>
+        </nav>
+
+        <section id="tabContent">
+            <div class="tab-panel active" id="upgrades">
+                <div class="upgrade-filter">
+                    <button class="upgrade-filter-btn active" data-filter="all">Todos</button>
+                    <button class="upgrade-filter-btn" data-filter="click">Clique</button>
+                    <button class="upgrade-filter-btn" data-filter="auto">Automático</button>
+                </div>
+                <div id="upgradesList"></div>
+            </div>
+            <div class="tab-panel" id="inventory">
+                <div id="inventoryPanel"></div>
+            </div>
+            <div class="tab-panel" id="gacha">
+                <div id="gachaPanel"></div>
+            </div>
+            <div class="tab-panel" id="achievements">
+                <div id="achievementsList"></div>
+            </div>
+            <div class="tab-panel" id="prestige">
+                <div id="prestigePanel"></div>
+            </div>
+            <div class="tab-panel" id="stats">
+                <div id="statsPanel">
+                    <div class="stat-row"><span class="stat-label">Cristais atuais</span><span class="stat-value" id="statCrystals">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Total minerado (vida)</span><span class="stat-value" id="statTotalCrystals">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Gacha Coins</span><span class="stat-value" id="statGachaCoins">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Cliques totais (vida)</span><span class="stat-value" id="statClicks">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Upgrades comprados (vida)</span><span class="stat-value" id="statUpgrades">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Prestígios</span><span class="stat-value" id="statPrestiges">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Conquistas</span><span class="stat-value" id="statAchievements">0/0</span></div>
+                    <div class="stat-row"><span class="stat-label">Pulls no Gacha</span><span class="stat-value" id="statGachaPulls">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Inventário</span><span class="stat-value" id="statInventoryCount">0/20</span></div>
+                    <div class="stat-row"><span class="stat-label">Tempo de jogo</span><span class="stat-value" id="statTime">0s</span></div>
+                    <div class="stat-row" style="justify-content:center; gap:8px;">
+                        <button id="resetSaveBtn" style="background:var(--accent-red); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Resetar Save</button>
+                        <button id="exportSaveBtn" style="background:var(--accent-cyan); color:#000; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Exportar Save</button>
+                        <button id="importSaveBtn" style="background:var(--accent-magenta); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Importar Save</button>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-panel" id="contracts">
+                <div id="contractsPanel"></div>
+            </div>
+            <div class="tab-panel" id="rumors">
+                <div id="rumorsPanel"></div>
+            </div>
+            <div class="tab-panel" id="portal">
+                <div id="portalPanel"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toastContainer"></div>
+    <div id="npcDialog" class="npc-dialog hidden">
+        <span class="npc-icon">👴</span>
+        <p class="npc-text" id="npcDialogText"></p>
+        <button class="npc-close" id="npcDialogClose" aria-label="Fechar">✕</button>
+    </div>
+
+    <div id="modalOverlay" class="hidden">
+        <div id="modal">
+            <h3 id="modalTitle">Confirmar</h3>
+            <p id="modalText"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="modalCancel">Cancelar</button>
+                <button class="modal-btn confirm" id="modalConfirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ===== CONFIGURAÇÃO =====
+            const SAVE_KEY = 'crystalMinerInventory_v1';
+            const SAVE_INTERVAL = 5000;
+            const SAVE_DEBOUNCE_MS = 1000;
+            const GOLDEN_CRYSTAL_INTERVAL = [45000, 80000];
+            const GOLDEN_CRYSTAL_DURATION = 12000;
+            const PRESTIGE_BONUS_PER_POINT = 0.15;
+            const GACHA_COST_SINGLE = 20;
+            const GACHA_COST_TEN = 180;
+            const GACHA_PITY_LIMIT = 80;
+            const MAX_INVENTORY_SIZE = 20;
+            const MAX_EQUIPPED = 2;
+            const OFFLINE_MAX_HOURS = 8;
+            const OFFLINE_EFFICIENCY = 0.5;
+            const TEMPORAL_FRAGMENT_BONUS = 0.10;
+
+            // ===== DEFINIÇÃO DE ITENS (PRESENTE) =====
+            const ITEMS_DEFS = [
+                { id: 'bronze_pick', name: 'Picareta de Bronze', type: 'click', rarity: 'common', baseBonus: 2, icon: '⛏️', source: 'gacha' },
+                { id: 'portable_miner', name: 'Robô Minerador Portátil', type: 'auto', rarity: 'common', baseBonus: 1, icon: '🤖', source: 'gacha' },
+                { id: 'iron_pick', name: 'Picareta de Ferro', type: 'click', rarity: 'rare', baseBonus: 8, icon: '🔩', source: 'gacha' },
+                { id: 'steam_generator', name: 'Gerador a Vapor', type: 'auto', rarity: 'rare', baseBonus: 5, icon: '♨️', source: 'gacha' },
+                { id: 'diamond_drill', name: 'Broca de Diamante', type: 'click', rarity: 'epic', baseBonus: 60, percentBonus: 0.06, icon: '💎', source: 'gacha' },
+                { id: 'plasma_reactor', name: 'Reator de Plasma', type: 'auto', rarity: 'epic', baseBonus: 60, percentBonus: 0.06, icon: '☢️', source: 'gacha' },
+                { id: 'antimatter_extractor', name: 'Extrator de Anti-matéria', type: 'click', rarity: 'legendary', baseBonus: 200, percentBonus: 0.12, icon: '⚛️', source: 'gacha' },
+                { id: 'infinite_energy', name: 'Núcleo de Energia Infinita', type: 'auto', rarity: 'legendary', baseBonus: 200, percentBonus: 0.12, icon: '♾️', source: 'gacha' },
+                { id: 'obsidian_pick', name: 'Picareta de Obsidiana', type: 'click', rarity: 'epic', baseBonus: 60, percentBonus: 0.06, icon: '🗿', source: 'special', unlockCondition: (s) => s.lifetimeTotalClicks >= 10000, hints: [
+                    { progress: 0.3, text: 'Rumores falam de uma picareta feita de rocha vulcânica...' },
+                    { progress: 0.6, text: 'Dizem que aparece para quem dedica muitos cliques à mineração...' },
+                    { progress: 0.9, text: 'Você sente que está muito perto! Continue clicando!' }
+                ]},
+                { id: 'quantum_miner', name: 'Minerador Quântico', type: 'auto', rarity: 'epic', baseBonus: 60, percentBonus: 0.06, icon: '🌌', source: 'special', unlockCondition: (s) => s.lifetimeTotalCrystals >= 50000000, hints: [
+                    { progress: 0.3, text: 'Há boatos de um minerador que opera em múltiplas dimensões...' },
+                    { progress: 0.6, text: 'Acredita-se que a riqueza acumulada atrai essa entidade...' },
+                    { progress: 0.9, text: 'Uma presença quântica está próxima! Continue acumulando cristais!' }
+                ]},
+                { id: 'stellar_blade', name: 'Lâmina Estelar', type: 'click', rarity: 'legendary', baseBonus: 250, percentBonus: 0.13, icon: '🌟', source: 'special', unlockCondition: (s) => s.prestigeCount >= 5, hints: [
+                    { progress: 0.3, text: 'Uma lâmina forjada no coração de uma estrela...' },
+                    { progress: 0.6, text: 'Dizem que apenas aqueles que renasceram podem empunhá-la...' },
+                    { progress: 0.9, text: 'Você está quase digno da Lâmina Estelar!' }
+                ]},
+                { id: 'singularity_core', name: 'Núcleo de Singularidade', type: 'auto', rarity: 'legendary', baseBonus: 200, percentBonus: 0.12, icon: '🌀', source: 'special', unlockCondition: (s) => s.goldenCrystalsCaught >= 100, hints: [
+                    { progress: 0.3, text: 'Cristais dourados podem esconder um segredo gravitacional...' },
+                    { progress: 0.6, text: 'Cada Cristal Dourado capturado o aproxima de um poder distorcido...' },
+                    { progress: 0.9, text: 'A singularidade está se formando! Continue capturando!' }
+                ]},
+                { id: 'creator_hammer', name: 'Martelo do Criador', type: 'click', rarity: 'mythic', baseBonus: 500, percentBonus: 0.25, icon: '🔨', source: 'mythic', unlockCondition: (s) => s.lifetimeTotalClicks >= 5000 && s.prestigeCount >= 8 && s.inventory.some(item => item.itemId === 'antimatter_extractor' || item.itemId === 'infinite_energy'), hints: [
+                    { progress: 0.3, text: 'Uma arma divina aguarda um artesão lendário...' },
+                    { progress: 0.6, text: 'Requer maestria em cliques, renascimentos e itens poderosos...' },
+                    { progress: 0.9, text: 'O Martelo do Criador está ao seu alcance!' }
+                ]},
+                { id: 'eternity_heart', name: 'Coração da Eternidade', type: 'auto', rarity: 'mythic', baseBonus: 400, percentBonus: 0.22, icon: '❤️', source: 'mythic', unlockCondition: (s) => s.lifetimeTotalCrystals >= 100000000 && s.goldenCrystalsCaught >= 200 && s.lifetimeUpgrades >= 100, hints: [
+                    { progress: 0.3, text: 'Dizem que um coração imortal bate nas profundezas da mina...' },
+                    { progress: 0.6, text: 'Requer riqueza imensurável, caça dourada e dedicação aos upgrades...' },
+                    { progress: 0.9, text: 'O Coração da Eternidade está prestes a despertar!' }
+                ]},
+            ];
+
+            // ===== ITEMS DA PARTE 2 (PASSADO) =====
+            const ITEMS_DEFS_PAST = [
+                { id: 'stone_pick', name: 'Picareta de Pedra Lascada', type: 'click', rarity: 'common', baseBonus: 2, icon: '🪨', source: 'gacha' },
+                { id: 'campfire', name: 'Fogueira', type: 'auto', rarity: 'common', baseBonus: 1, icon: '🔥', source: 'gacha' },
+                { id: 'bone_spear', name: 'Lança de Osso', type: 'click', rarity: 'rare', baseBonus: 8, icon: '🦴', source: 'gacha' },
+                { id: 'spirit_totem', name: 'Totem Espiritual', type: 'auto', rarity: 'rare', baseBonus: 5, icon: '🗿', source: 'gacha' },
+                { id: 'amber_charm', name: 'Amuleto de Âmbar', type: 'click', rarity: 'epic', baseBonus: 60, percentBonus: 0.06, icon: '🟠', source: 'gacha' },
+                { id: 'star_iron', name: 'Ferro Estelar', type: 'auto', rarity: 'epic', baseBonus: 60, percentBonus: 0.06, icon: '⭐', source: 'gacha' },
+                { id: 'time_blade', name: 'Lâmina do Tempo', type: 'click', rarity: 'legendary', baseBonus: 200, percentBonus: 0.12, icon: '⏳', source: 'gacha' },
+                { id: 'primordial_core', name: 'Núcleo Primordial', type: 'auto', rarity: 'legendary', baseBonus: 200, percentBonus: 0.12, icon: '🌋', source: 'gacha' },
+                { id: 'ancestral_wisdom', name: 'Sabedoria Ancestral', type: 'auto', rarity: 'mythic', baseBonus: 400, percentBonus: 0.22, icon: '📜', source: 'mythic', unlockCondition: (s) => s.prestigeCountPast >= 3 && s.lifetimeTotalCrystals >= 5000000, hints: [
+                    { progress: 0.3, text: 'Antigos espíritos sussurram sobre uma sabedoria perdida...' },
+                    { progress: 0.6, text: 'Apenas os renascidos no passado podem compreendê-la...' },
+                    { progress: 0.9, text: 'A Sabedoria Ancestral está próxima!' }
+                ]},
+            ];
+
+            // ===== UPGRADES (PRESENTE) =====
+            const UPGRADES_DEFS = [
+                { id: 'pickaxe', name: 'Picareta de Pedra', desc: '+1 por clique', baseCost: 50, costMult: 1.30, type: 'click', value: 1, icon: '⛏️', unlock: () => true },
+                { id: 'auto_miner', name: 'Minerador Básico', desc: '+1/s', baseCost: 150, costMult: 1.30, type: 'auto', value: 1, icon: '🤖', unlock: (s) => s.lifetimeTotalCrystals >= 200 },
+                { id: 'drill', name: 'Broca de Ferro', desc: '+5 por clique', baseCost: 800, costMult: 1.32, type: 'click', value: 5, icon: '🔩', unlock: (s) => s.lifetimeTotalCrystals >= 1000 },
+                { id: 'miner_bot', name: 'Robô Minerador', desc: '+5/s', baseCost: 3000, costMult: 1.33, type: 'auto', value: 5, icon: '🦾', unlock: (s) => s.lifetimeTotalCrystals >= 5000 && s.lifetimeUpgrades >= 3 },
+                { id: 'laser', name: 'Broca a Laser', desc: '+25 por clique', baseCost: 15000, costMult: 1.35, type: 'click', value: 25, icon: '⚡', unlock: (s) => s.lifetimeTotalCrystals >= 25000 && s.lifetimeTotalClicks >= 200 },
+                { id: 'extractor', name: 'Extrator Quântico', desc: '+25/s', baseCost: 60000, costMult: 1.36, type: 'auto', value: 25, icon: '⚛️', unlock: (s) => s.lifetimeTotalCrystals >= 100000 && s.lifetimeUpgrades >= 5 },
+                { id: 'nano_boost', name: 'Nano Boost', desc: '+100 por clique', baseCost: 300000, costMult: 1.38, type: 'click', value: 100, icon: '🔬', unlock: (s) => s.lifetimeTotalCrystals >= 500000 },
+                { id: 'orbital', name: 'Estação Orbital', desc: '+100/s', baseCost: 800000, costMult: 1.40, type: 'auto', value: 100, icon: '🛰️', unlock: (s) => s.lifetimeTotalCrystals >= 1000000 },
+                { id: 'plasma', name: 'Cortador de Plasma', desc: '+400 por clique', baseCost: 4000000, costMult: 1.42, type: 'click', value: 400, icon: '🔥', unlock: (s) => s.lifetimeTotalCrystals >= 5000000 && s.prestigeCount >= 1 },
+                { id: 'wormhole', name: 'Buraco de Minhoca', desc: '+400/s', baseCost: 15000000, costMult: 1.45, type: 'auto', value: 400, icon: '🌀', unlock: (s) => s.lifetimeTotalCrystals >= 20000000 && s.prestigeCount >= 2 },
+                { id: 'dark_matter', name: 'Matéria Escura', desc: '+1500/s', baseCost: 80000000, costMult: 1.48, type: 'auto', value: 1500, icon: '🌌', unlock: (s) => s.lifetimeTotalCrystals >= 100000000 && s.prestigeCount >= 3 },
+                { id: 'cosmic_pick', name: 'Picareta Cósmica', desc: '+1500 por clique', baseCost: 400000000, costMult: 1.50, type: 'click', value: 1500, icon: '🌟', unlock: (s) => s.lifetimeTotalCrystals >= 500000000 && s.prestigeCount >= 5 },
+                { id: 'click_mastery', name: 'Maestria em Clique', desc: '+10% por clique', baseCost: 50000000, costMult: 1.60, type: 'click', percent: 0.10, icon: '🎯', unlock: (s) => s.prestigeCount >= 3 },
+                { id: 'auto_efficiency', name: 'Eficiência Automática', desc: '+8% produção automática', baseCost: 80000000, costMult: 1.65, type: 'auto', percent: 0.08, icon: '⚙️', unlock: (s) => s.prestigeCount >= 4 },
+                { id: 'click_supremacy', name: 'Supremacia de Clique', desc: '+7% por clique', baseCost: 600000000, costMult: 1.70, type: 'click', percent: 0.07, icon: '💥', unlock: (s) => s.prestigeCount >= 6 },
+                { id: 'auto_supremacy', name: 'Supremacia Automática', desc: '+7% produção automática', baseCost: 900000000, costMult: 1.72, type: 'auto', percent: 0.07, icon: '🏭', unlock: (s) => s.prestigeCount >= 7 },
+            ];
+
+            // ===== UPGRADES DA PARTE 2 (PASSADO) =====
+            const UPGRADES_DEFS_PAST = [
+                { id: 'stone_pick', name: 'Picareta de Pedra Lascada', desc: '+1 por clique', baseCost: 50, costMult: 1.30, type: 'click', value: 1, icon: '🪨', unlock: () => true },
+                { id: 'campfire', name: 'Fogueira', desc: '+1/s', baseCost: 150, costMult: 1.30, type: 'auto', value: 1, icon: '🔥', unlock: (s) => s.lifetimeTotalCrystals >= 200 },
+                { id: 'bone_spear', name: 'Lança de Osso', desc: '+5 por clique', baseCost: 800, costMult: 1.32, type: 'click', value: 5, icon: '🦴', unlock: (s) => s.lifetimeTotalCrystals >= 1000 },
+                { id: 'spirit_totem', name: 'Totem Espiritual', desc: '+5/s', baseCost: 3000, costMult: 1.33, type: 'auto', value: 5, icon: '🗿', unlock: (s) => s.lifetimeTotalCrystals >= 5000 && s.lifetimeUpgrades >= 3 },
+                { id: 'amber_charm', name: 'Amuleto de Âmbar', desc: '+25 por clique', baseCost: 15000, costMult: 1.35, type: 'click', value: 25, icon: '🟠', unlock: (s) => s.lifetimeTotalCrystals >= 25000 && s.lifetimeTotalClicks >= 200 },
+                { id: 'star_iron', name: 'Ferro Estelar', desc: '+25/s', baseCost: 60000, costMult: 1.36, type: 'auto', value: 25, icon: '⭐', unlock: (s) => s.lifetimeTotalCrystals >= 100000 && s.lifetimeUpgrades >= 5 },
+                { id: 'time_blade', name: 'Lâmina do Tempo', desc: '+100 por clique', baseCost: 300000, costMult: 1.38, type: 'click', value: 100, icon: '⏳', unlock: (s) => s.lifetimeTotalCrystals >= 500000 },
+                { id: 'primordial_core', name: 'Núcleo Primordial', desc: '+100/s', baseCost: 800000, costMult: 1.40, type: 'auto', value: 100, icon: '🌋', unlock: (s) => s.lifetimeTotalCrystals >= 1000000 },
+                { id: 'temporal_rift', name: 'Fenda Temporal', desc: '+400/s', baseCost: 4000000, costMult: 1.42, type: 'auto', value: 400, icon: '🌀', unlock: (s) => s.lifetimeTotalCrystals >= 5000000 && s.prestigeCountPast >= 1 },
+                { id: 'elder_wisdom', name: 'Sabedoria Ancestral', desc: '+400 por clique', baseCost: 15000000, costMult: 1.45, type: 'click', value: 400, icon: '📜', unlock: (s) => s.lifetimeTotalCrystals >= 20000000 && s.prestigeCountPast >= 2 },
+                { id: 'primordial_soup', name: 'Sopa Primordial', desc: '+1500/s', baseCost: 80000000, costMult: 1.48, type: 'auto', value: 1500, icon: '🧪', unlock: (s) => s.lifetimeTotalCrystals >= 100000000 && s.prestigeCountPast >= 3 },
+                { id: 'cosmic_echo', name: 'Eco Cósmico', desc: '+1500 por clique', baseCost: 400000000, costMult: 1.50, type: 'click', value: 1500, icon: '🌌', unlock: (s) => s.lifetimeTotalCrystals >= 500000000 && s.prestigeCountPast >= 5 },
+                { id: 'past_click_mastery', name: 'Maestria Ancestral de Clique', desc: '+10% por clique', baseCost: 50000000, costMult: 1.60, type: 'click', percent: 0.10, icon: '🎯', unlock: (s) => s.prestigeCountPast >= 3 },
+                { id: 'past_auto_efficiency', name: 'Eficiência Primordial', desc: '+8% produção automática', baseCost: 80000000, costMult: 1.65, type: 'auto', percent: 0.08, icon: '⚙️', unlock: (s) => s.prestigeCountPast >= 4 },
+            ];
+
+            // ===== CONQUISTAS =====
+            const ACHIEVEMENTS_DEFS = [
+                { id: 'first_click', name: 'Primeiro Toque', desc: 'Clique no cristal 1 vez', icon: '👆', check: (s) => s.lifetimeTotalClicks >= 1 },
+                { id: 'click_100', name: 'Clicador Iniciante', desc: '100 cliques totais', icon: '👆', check: (s) => s.lifetimeTotalClicks >= 100 },
+                { id: 'click_1000', name: 'Clicador Dedicado', desc: '1.000 cliques totais', icon: '🔥', check: (s) => s.lifetimeTotalClicks >= 1000 },
+                { id: 'click_10000', name: 'Mestre dos Cliques', desc: '10.000 cliques totais', icon: '💪', check: (s) => s.lifetimeTotalClicks >= 10000 },
+                { id: 'crystals_1k', name: 'Riqueza Crescente', desc: 'Tenha 1.000 cristais', icon: '💰', check: (s) => s.crystals >= 1000 },
+                { id: 'crystals_10k', name: 'Colecionador', desc: 'Tenha 10.000 cristais', icon: '💎', check: (s) => s.crystals >= 10000 },
+                { id: 'crystals_100k', name: 'Magnata dos Cristais', desc: 'Tenha 100.000 cristais', icon: '👑', check: (s) => s.crystals >= 100000 },
+                { id: 'crystals_1m', name: 'Milionário', desc: 'Tenha 1.000.000 de cristais', icon: '🏆', check: (s) => s.crystals >= 1000000 },
+                { id: 'upgrade_first', name: 'Primeiro Upgrade', desc: 'Compre 1 upgrade', icon: '⬆️', check: (s) => s.lifetimeUpgrades >= 1 },
+                { id: 'upgrade_10', name: 'Melhorando Sempre', desc: 'Compre 10 upgrades', icon: '📈', check: (s) => s.lifetimeUpgrades >= 10 },
+                { id: 'upgrade_50', name: 'Viciado em Upgrades', desc: 'Compre 50 upgrades', icon: '🚀', check: (s) => s.lifetimeUpgrades >= 50 },
+                { id: 'total_100k', name: 'Minerador Ativo', desc: 'Total de 100.000 cristais minerados (vida)', icon: '⛏️', check: (s) => s.lifetimeTotalCrystals >= 100000 },
+                { id: 'total_10m', name: 'Lenda da Mineração', desc: 'Total de 10.000.000 cristais minerados (vida)', icon: '🌟', check: (s) => s.lifetimeTotalCrystals >= 10000000 },
+                { id: 'prestige_1', name: 'Renascimento', desc: 'Faça prestígio 1 vez', icon: '🔄', check: (s) => s.prestigeCount >= 1 },
+                { id: 'prestige_5', name: 'Eterno', desc: 'Faça prestígio 5 vezes', icon: '♾️', check: (s) => s.prestigeCount >= 5 },
+                { id: 'gacha_first', name: 'Primeiro Pull', desc: 'Faça 1 pull no gacha', icon: '🎰', check: (s) => s.gachaPulls >= 1 },
+                { id: 'gacha_20', name: 'Viciado em Gacha', desc: 'Faça 20 pulls no gacha', icon: '🎲', check: (s) => s.gachaPulls >= 20 },
+                { id: 'legendary_item', name: 'Sorte Lendária', desc: 'Obtenha um item lendário (via gacha ou especial)', icon: '🌈', check: (s) => s.inventory.some(item => { const def = getItemDef(item.itemId); return def && (def.rarity === 'legendary' || def.rarity === 'mythic'); }) },
+                { id: 'time_traveler', name: 'Viajante do Tempo', desc: 'Viaje para o passado pela primeira vez', icon: '🌀', check: (s) => s.timeTravelCount >= 1 },
+            ];
+
+            // ===== CONTRATOS DIÁRIOS =====
+            const DAILY_CONTRACTS_DEFS = [
+                { id: 'clicks', desc: 'Clique 500 vezes', target: 500, reward: 5, check: (s) => s.dailyStats.clicks >= 500 },
+                { id: 'mine', desc: 'Mine 50.000 cristais', target: 50000, reward: 8, check: (s) => s.dailyStats.crystals >= 50000 },
+                { id: 'golden', desc: 'Capture 5 Cristais Dourados', target: 5, reward: 10, check: (s) => s.dailyStats.golden >= 5 },
+                { id: 'upgrades', desc: 'Compre 20 upgrades', target: 20, reward: 6, check: (s) => s.dailyStats.upgrades >= 20 },
+                { id: 'level', desc: 'Alcance o nível 15', target: 15, reward: 12, check: (s) => getLevel(s.totalCrystals) >= 15 },
+            ];
+
+            // ===== MELHORIAS TEMPORAIS =====
+            const TEMPORAL_UPGRADES_DEFS = [
+                { id: 'temp_prod_both', name: 'Produção Eterna', desc: '+10% produção em todas as eras', baseCost: 1, costMult: 1.5, effect: (s) => s.lifetimeTotalCrystals >= 0, bonus: 0.10, icon: '⚡' },
+                { id: 'temp_click_both', name: 'Clique Primordial', desc: '+15% clique em todas as eras', baseCost: 2, costMult: 2.0, effect: (s) => s.lifetimeTotalClicks >= 100, bonus: 0.15, icon: '👆' },
+                { id: 'temp_gacha', name: 'Sorte Temporal', desc: '+1 Gacha Coin por conquista', baseCost: 1, costMult: 2.0, effect: (s) => true, bonus: 1, icon: '🍀' },
+            ];
+
+            // ===== ESTADO =====
+            function createEraState(isPast = false) {
+                return {
+                    crystals: 0,
+                    totalCrystals: 0,
+                    totalClicks: 0,
+                    totalUpgrades: 0,
+                    prestigePoints: 0,
+                    prestigeCount: 0,
+                    startTime: Date.now(),
+                    playTime: 0,
+                    goldenCrystalActive: false,
+                    goldenCrystalExpiresAt: 0,
+                    goldenCrystalPosX: 40,
+                    goldenCrystalPosY: -40,
+                    goldenCrystalsCaught: 0,
+                    upgrades: Object.fromEntries((isPast ? UPGRADES_DEFS_PAST : UPGRADES_DEFS).map(u => [u.id, 0])),
+                    inventory: [],
+                    equippedSlots: [null, null],
+                    gachaPulls: 0,
+                    pityCounter: 0,
+                    nextUid: 1,
+                    gachaCoins: 0,
+                    dailyContractDate: '',
+                    dailyContracts: [],
+                    luckyFragments: 0,
+                    dailyStats: { clicks: 0, crystals: 0, golden: 0, upgrades: 0 },
+                    autoAccumulator: 0,
+                    prestigeCountPast: 0,
+                    ownedSpecialItems: [],
+                };
+            }
+
+            function defaultState() {
+                return {
+                    era: 'present',
+                    presentState: createEraState(),
+                    pastState: createEraState(true),
+                    // Globais
+                    achievements: Object.fromEntries(ACHIEVEMENTS_DEFS.map(a => [a.id, false])),
+                    lifetimeTotalCrystals: 0,
+                    lifetimeTotalClicks: 0,
+                    lifetimeUpgrades: 0,
+                    temporalFragments: 0,
+                    timeTravelCount: 0,
+                    soundEnabled: true,
+                    hintsSeen: {},
+                    temporalUpgrades: {},
+                    lastSave: Date.now(),
+                };
+            }
+
+            // ===== VARIÁVEIS GLOBAIS =====
+            let state = loadState();
+            syncStateWithEra();
+
+            let goldenCrystalTimeout = null;
+            let goldenCrystalExpireTimeout = null;
+            let npcDialogTimeout = null;
+            let lastClickTime = 0;
+            let lastSaveTime = Date.now();
+            let lastTickTime = Date.now();
+            let lastHeavyCheckTime = 0;
+            const HEAVY_CHECK_INTERVAL = 1000;
+            let needsRenderUpgrades = true;
+            let needsRenderAchievements = true;
+            let needsRenderGacha = true;
+            let needsRenderPrestige = true;
+            let needsRenderInventory = true;
+            let needsRenderContracts = true;
+            let needsRenderRumors = true;
+            let needsRenderPortal = true;
+            let saveDebounceTimeout = null;
+            let allowSave = true;
+            let currentUpgradeFilter = 'all';
+
+            const $ = (sel) => document.querySelector(sel);
+            const $$ = (sel) => document.querySelectorAll(sel);
+
+            const crystalCountEl = $('#crystalCount');
+            const cpsDisplayEl = $('#cpsDisplay');
+            const levelDisplayEl = $('#levelDisplay');
+            const levelBarFillEl = $('#levelBarFill');
+            const clickPowerValueEl = $('#clickPowerValue');
+            const crystalButtonEl = $('#crystalButton');
+            const crystalWrapperEl = $('#crystalWrapper');
+            const goldenCrystalEl = $('#goldenCrystal');
+            const upgradesListEl = $('#upgradesList');
+            const achievementsListEl = $('#achievementsList');
+            const prestigePanelEl = $('#prestigePanel');
+            const statCrystalsEl = $('#statCrystals');
+            const statTotalCrystalsEl = $('#statTotalCrystals');
+            const statGachaCoinsEl = $('#statGachaCoins');
+            const statClicksEl = $('#statClicks');
+            const statUpgradesEl = $('#statUpgrades');
+            const statPrestigesEl = $('#statPrestiges');
+            const statAchievementsEl = $('#statAchievements');
+            const statGachaPullsEl = $('#statGachaPulls');
+            const statInventoryCountEl = $('#statInventoryCount');
+            const statTimeEl = $('#statTime');
+            const toastContainerEl = $('#toastContainer');
+            const modalOverlayEl = $('#modalOverlay');
+            const modalTitleEl = $('#modalTitle');
+            const modalTextEl = $('#modalText');
+            const modalCancelBtn = $('#modalCancel');
+            const modalConfirmBtn = $('#modalConfirm');
+            const gachaPanelEl = $('#gachaPanel');
+            const inventoryPanelEl = $('#inventoryPanel');
+            const resetSaveBtn = $('#resetSaveBtn');
+            const exportSaveBtn = $('#exportSaveBtn');
+            const importSaveBtn = $('#importSaveBtn');
+            const gachaCoinCountEl = $('#gachaCoinCount');
+            const contractsPanelEl = $('#contractsPanel');
+            const rumorsPanelEl = $('#rumorsPanel');
+            const portalPanelEl = $('#portalPanel');
+            const npcDialogEl = $('#npcDialog');
+            const npcDialogTextEl = $('#npcDialogText');
+            const npcDialogCloseEl = $('#npcDialogClose');
+            const soundToggleEl = $('#soundToggle');
+            const statsPanelEl = $('#statsPanel');
+
+            // ===== POOL DE PARTÍCULAS E TEXTOS =====
+            const MAX_PARTICLES = 20;
+            const particlePool = [];
+            let particleIndex = 0;
+
+            function initParticlePool() {
+                for (let i = 0; i < MAX_PARTICLES; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'particle';
+                    el.style.display = 'none';
+                    document.body.appendChild(el);
+                    particlePool.push(el);
+                }
+            }
+
+            const MAX_FLOATING_TEXTS = 5;
+            const floatingTextPool = [];
+            let floatingTextIndex = 0;
+
+            function initFloatingTextPool() {
+                for (let i = 0; i < MAX_FLOATING_TEXTS; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'floating-text';
+                    el.style.display = 'none';
+                    document.body.appendChild(el);
+                    floatingTextPool.push(el);
+                }
+            }
+
+            // ===== HELPERS =====
+            function getCurrentItemsDefs() {
+                return state.era === 'past' ? ITEMS_DEFS_PAST : ITEMS_DEFS;
+            }
+
+            function getCurrentUpgradesDefs() {
+                return state.era === 'past' ? UPGRADES_DEFS_PAST : UPGRADES_DEFS;
+            }
+
+            function getItemDef(itemId) {
+                return getCurrentItemsDefs().find(d => d.id === itemId);
+            }
+
+            function getLevel(totalCrystals) { return 1 + Math.floor(Math.sqrt(totalCrystals / 1000)); }
+            function getLevelProgress(totalCrystals) {
+                const level = getLevel(totalCrystals);
+                const currentLevelXp = 1000 * Math.pow(level - 1, 2);
+                const nextLevelXp = 1000 * Math.pow(level, 2);
+                const denom = nextLevelXp - currentLevelXp;
+                if (denom <= 0) return 0;
+                return Math.max(0, Math.min(1, (totalCrystals - currentLevelXp) / denom));
+            }
+            function getLevelBonus(level) { return (level - 1) * 0.03; }
+            function getPrestigeBonus(prestigePoints) { return prestigePoints * PRESTIGE_BONUS_PER_POINT; }
+            function getTemporalFragmentBonus() { return state.temporalFragments * TEMPORAL_FRAGMENT_BONUS; }
+
+            function getTotalMultiplier() {
+                const levelBonus = getLevelBonus(getLevel(state.totalCrystals));
+                const prestigeBonus = getPrestigeBonus(state.prestigePoints);
+                const temporalBonus = getTemporalFragmentBonus();
+                let extraBonus = 0;
+                if (state.temporalUpgrades) {
+                    if (state.temporalUpgrades.temp_prod_both) extraBonus += state.temporalUpgrades.temp_prod_both * 0.10;
+                    if (state.temporalUpgrades.temp_click_both) extraBonus += state.temporalUpgrades.temp_click_both * 0.15;
+                }
+                return (1 + levelBonus + prestigeBonus + temporalBonus + extraBonus);
+            }
+
+            // Sistema híbrido: soma absoluta (base) + percentual aplicado sobre a base,
+            // depois o multiplicador global (nível/prestígio/temporal) é aplicado por cima.
+            function getClickPower() {
+                let base = 1;
+                let percent = 0;
+
+                for (const def of getCurrentUpgradesDefs()) {
+                    if (def.type !== 'click') continue;
+                    const level = state.upgrades[def.id] || 0;
+                    if (!level) continue;
+                    if (def.percent) {
+                        percent += def.percent * level;
+                    } else if (def.value) {
+                        base += def.value * level;
+                    }
+                }
+
+                for (const uid of state.equippedSlots) {
+                    if (!uid) continue;
+                    const invItem = state.inventory.find(item => item.uid === uid);
+                    if (!invItem) continue;
+                    const def = getItemDef(invItem.itemId);
+                    if (!def || def.type !== 'click') continue;
+                    base += def.baseBonus || 0;
+                    percent += def.percentBonus || 0;
+                }
+
+                const total = base * (1 + percent);
+                return Math.floor(total * getTotalMultiplier());
+            }
+
+            function getAutoPower() {
+                let base = 0;
+                let percent = 0;
+
+                for (const def of getCurrentUpgradesDefs()) {
+                    if (def.type !== 'auto') continue;
+                    const level = state.upgrades[def.id] || 0;
+                    if (!level) continue;
+                    if (def.percent) {
+                        percent += def.percent * level;
+                    } else if (def.value) {
+                        base += def.value * level;
+                    }
+                }
+
+                for (const uid of state.equippedSlots) {
+                    if (!uid) continue;
+                    const invItem = state.inventory.find(item => item.uid === uid);
+                    if (!invItem) continue;
+                    const def = getItemDef(invItem.itemId);
+                    if (!def || def.type !== 'auto') continue;
+                    base += def.baseBonus || 0;
+                    percent += def.percentBonus || 0;
+                }
+
+                const total = base * (1 + percent);
+                return Math.floor(total * getTotalMultiplier());
+            }
+
+            function getUpgradeCost(def) {
+                const level = state.upgrades[def.id] || 0;
+                return Math.floor(def.baseCost * Math.pow(def.costMult, level));
+            }
+
+            function getPrestigeGain() {
+                if (state.totalCrystals < 100000) return 0;
+                return Math.floor(Math.pow(state.totalCrystals / 100000, 0.7));
+            }
+
+            function getPrestigeGainPast() {
+                if (state.totalCrystals < 100000) return 0;
+                return Math.floor(Math.pow(state.totalCrystals / 100000, 0.6) * 1.5);
+            }
+
+            function isItemEquipped(uid) { return state.equippedSlots.includes(uid); }
+            function canEquip() { return state.equippedSlots.filter(uid => uid !== null).length < MAX_EQUIPPED; }
+
+            function equipItem(uid) {
+                const invItem = state.inventory.find(item => item.uid === uid);
+                if (!invItem) {
+                    showToast('⚠️', 'Item não encontrado no inventário.');
+                    return;
+                }
+                if (isItemEquipped(uid)) return;
+                if (!canEquip()) {
+                    showToast('⚠️', 'Você já tem 2 itens equipados! Desequipe um para equipar outro.');
+                    return;
+                }
+                const emptySlot = state.equippedSlots.indexOf(null);
+                if (emptySlot === -1) return;
+                state.equippedSlots[emptySlot] = uid;
+                invItem.equipped = true;
+                needsRenderInventory = true;
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function unequipItem(uid) {
+                const slotIndex = state.equippedSlots.indexOf(uid);
+                if (slotIndex === -1) return;
+                state.equippedSlots[slotIndex] = null;
+                const invItem = state.inventory.find(item => item.uid === uid);
+                if (invItem) invItem.equipped = false;
+                needsRenderInventory = true;
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function toggleEquip(uid) {
+                if (isItemEquipped(uid)) unequipItem(uid);
+                else equipItem(uid);
+            }
+
+            function addItemToInventory(itemId) {
+                if (state.inventory.length >= MAX_INVENTORY_SIZE) {
+                    showToast('⚠️', 'Inventário cheio! Venda ou descarte itens para obter novos.');
+                    return false;
+                }
+                const newItem = { uid: state.nextUid++, itemId: itemId, equipped: false };
+                state.inventory.push(newItem);
+                needsRenderInventory = true;
+                return true;
+            }
+
+            function getSellValue(rarity) {
+                switch(rarity) {
+                    case 'common': return 1;
+                    case 'rare': return 5;
+                    case 'epic': return 15;
+                    case 'legendary': return 40;
+                    case 'mythic': return 80;
+                    default: return 1;
+                }
+            }
+
+            function sellItem(uid) {
+                const idx = state.inventory.findIndex(item => item.uid === uid);
+                if (idx === -1) return;
+                const invItem = state.inventory[idx];
+                const def = getItemDef(invItem.itemId);
+                if (def) {
+                    const slotIndex = state.equippedSlots.indexOf(uid);
+                    if (slotIndex !== -1) {
+                        state.equippedSlots[slotIndex] = null;
+                        invItem.equipped = false;
+                    }
+                    state.inventory.splice(idx, 1);
+                    const coinValue = getSellValue(def.rarity);
+                    state.gachaCoins += coinValue;
+                    showToast('🪙', `Item vendido por ${coinValue} Gacha Coins.`);
+                    needsRenderInventory = true;
+                    needsRenderGacha = true;
+                    updateDisplay();
+                    saveGameDebounced();
+                }
+            }
+
+            // BUG FIX #2: itens especiais/míticos agora são rastreados permanentemente em
+            // ownedSpecialItems, independente de estarem ou não no inventário. Isso evita
+            // o exploit de vender e reobter o item infinitamente a cada tick.
+            function checkSpecialItems() {
+                if (!Array.isArray(state.ownedSpecialItems)) state.ownedSpecialItems = [];
+                for (const def of getCurrentItemsDefs()) {
+                    if (def.source === 'special' || def.source === 'mythic') {
+                        const alreadyOwned = state.ownedSpecialItems.includes(def.id);
+                        if (!alreadyOwned && def.unlockCondition(state)) {
+                            if (state.inventory.length >= MAX_INVENTORY_SIZE) {
+                                showToast('⚠️', `Inventário cheio! Não foi possível obter ${def.name}.`);
+                                continue;
+                            }
+                            if (addItemToInventory(def.id)) {
+                                state.ownedSpecialItems.push(def.id);
+                                showToast('🎁', `Item especial obtido: ${def.name}!`);
+                            }
+                        }
+                    }
+                }
+                needsRenderInventory = true;
+            }
+
+            function grantGachaCoins(amount, reason = '') {
+                if (amount <= 0) return;
+                state.gachaCoins += amount;
+                needsRenderGacha = true;
+                updateDisplay();
+                if (reason) showToast('🪙', `+${amount} Gacha Coins (${reason})`);
+                saveGameDebounced();
+            }
+
+            function resetDailyProgressIfNeeded() {
+                const today = new Date().toLocaleDateString('en-CA');
+                if (state.dailyContractDate !== today) {
+                    state.dailyContractDate = today;
+                    state.dailyContracts = DAILY_CONTRACTS_DEFS.map(c => ({ id: c.id, completed: false, claimed: false }));
+                    state.luckyFragments = 0;
+                    state.dailyStats = { clicks: 0, crystals: 0, golden: 0, upgrades: 0 };
+                    needsRenderContracts = true;
+                    saveGameDebounced();
+                }
+            }
+
+            function checkDailyContracts() {
+                resetDailyProgressIfNeeded();
+                for (let i = 0; i < DAILY_CONTRACTS_DEFS.length; i++) {
+                    const def = DAILY_CONTRACTS_DEFS[i];
+                    const contract = state.dailyContracts.find(c => c.id === def.id);
+                    if (!contract || contract.claimed) continue;
+                    if (def.check(state) && !contract.completed) {
+                        contract.completed = true;
+                        showToast('✅', `Contrato concluído: ${def.desc}! Reivindique sua recompensa.`);
+                        needsRenderContracts = true;
+                    }
+                }
+                if (needsRenderContracts) renderContracts();
+            }
+
+            function claimContract(id) {
+                const contract = state.dailyContracts.find(c => c.id === id);
+                if (!contract) return;
+                const def = DAILY_CONTRACTS_DEFS.find(d => d.id === id);
+                if (!def) return;
+                if (!contract.completed || contract.claimed) return;
+                contract.claimed = true;
+                grantGachaCoins(def.reward, `Contrato: ${def.desc}`);
+                needsRenderContracts = true;
+                renderContracts();
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function tryDropLuckyFragment() {
+                if (state.luckyFragments >= 20) return;
+                if (Math.random() < 0.005) {
+                    state.luckyFragments += 1;
+                    showToast('🍀', '+1 Fragmento de Sorte!');
+                    if (state.luckyFragments >= 10) {
+                        state.luckyFragments -= 10;
+                        grantGachaCoins(1, '10 Fragmentos de Sorte');
+                    } else {
+                        saveGameDebounced();
+                    }
+                }
+            }
+
+            function checkAchievements() {
+                ensureAchievements(state);
+                let newUnlocks = [];
+                for (const ach of ACHIEVEMENTS_DEFS) {
+                    if (!state.achievements[ach.id] && ach.check(state)) {
+                        state.achievements[ach.id] = true;
+                        newUnlocks.push(ach);
+                    }
+                }
+                if (newUnlocks.length > 0) {
+                    playAchievementSound();
+                    for (const ach of newUnlocks) {
+                        showToast(ach.icon, 'Conquista: ' + ach.name + '!');
+                        grantGachaCoins(3, ach.name);
+                    }
+                    needsRenderAchievements = true;
+                    renderAchievements();
+                    updateDisplay();
+                }
+            }
+
+            function addCrystalsAndProgress(amount) {
+                state.crystals += amount;
+                state.totalCrystals += amount;
+                state.lifetimeTotalCrystals += amount;
+                state.dailyStats.crystals += amount;
+            }
+
+            // ===== DICAS (HINTS) =====
+            function getProgressForItem(itemDef, s) {
+                if (itemDef.id === 'obsidian_pick') return Math.min(s.lifetimeTotalClicks / 10000, 1);
+                if (itemDef.id === 'quantum_miner') return Math.min(s.lifetimeTotalCrystals / 50000000, 1);
+                if (itemDef.id === 'stellar_blade') return Math.min(s.prestigeCount / 5, 1);
+                if (itemDef.id === 'singularity_core') return Math.min(s.goldenCrystalsCaught / 100, 1);
+                if (itemDef.id === 'creator_hammer') {
+                    const progressClicks = Math.min(s.lifetimeTotalClicks / 5000, 1);
+                    const progressPrestige = Math.min(s.prestigeCount / 8, 1);
+                    const progressItems = s.inventory.some(item => item.itemId === 'antimatter_extractor' || item.itemId === 'infinite_energy') ? 1 : 0;
+                    return Math.min(progressClicks, progressPrestige, progressItems);
+                }
+                if (itemDef.id === 'eternity_heart') {
+                    const progressCrystals = Math.min(s.lifetimeTotalCrystals / 100000000, 1);
+                    const progressGolden = Math.min(s.goldenCrystalsCaught / 200, 1);
+                    const progressUpgrades = Math.min(s.lifetimeUpgrades / 100, 1);
+                    return Math.min(progressCrystals, progressGolden, progressUpgrades);
+                }
+                if (itemDef.id === 'ancestral_wisdom') {
+                    return Math.min((s.prestigeCountPast || 0) / 3, 1);
+                }
+                return null;
+            }
+
+            function checkHints() {
+                if (state.era === 'present') {
+                    for (const def of ITEMS_DEFS) {
+                        if (!def.hints || !def.unlockCondition) continue;
+                        const alreadyOwned = state.inventory.some(item => item.itemId === def.id);
+                        if (alreadyOwned) continue;
+                        const progress = getProgressForItem(def, state);
+                        if (progress === null) continue;
+                        for (const hint of def.hints) {
+                            const hintKey = def.id + '_' + hint.progress;
+                            if (progress >= hint.progress && !state.hintsSeen[hintKey]) {
+                                state.hintsSeen[hintKey] = true;
+                                showNPCDialog(hint.text);
+                                saveGameDebounced();
+                                break;
+                            }
+                        }
+                    }
+                } else if (state.era === 'past') {
+                    for (const def of ITEMS_DEFS_PAST) {
+                        if (!def.hints || !def.unlockCondition) continue;
+                        const alreadyOwned = state.inventory.some(item => item.itemId === def.id);
+                        if (alreadyOwned) continue;
+                        const progress = getProgressForItem(def, state);
+                        if (progress === null) continue;
+                        for (const hint of def.hints) {
+                            const hintKey = def.id + '_' + hint.progress;
+                            if (progress >= hint.progress && !state.hintsSeen[hintKey]) {
+                                state.hintsSeen[hintKey] = true;
+                                showNPCDialog(hint.text);
+                                saveGameDebounced();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            function showNPCDialog(text) {
+                npcDialogTextEl.textContent = text;
+                npcDialogEl.classList.remove('hidden');
+                if (npcDialogTimeout) clearTimeout(npcDialogTimeout);
+                npcDialogTimeout = setTimeout(() => {
+                    npcDialogEl.classList.add('hidden');
+                    npcDialogTimeout = null;
+                }, 6000);
+            }
+
+            // ===== AÇÕES =====
+            function clickCrystal(e) {
+                const now = Date.now();
+                if (now - lastClickTime < 50) return;
+                lastClickTime = now;
+                const clickPower = getClickPower();
+                const goldenActive = state.goldenCrystalActive;
+                const gain = goldenActive ? clickPower * 5 : clickPower;
+                addCrystalsAndProgress(gain);
+                state.totalClicks += 1;
+                state.lifetimeTotalClicks += 1;
+                state.dailyStats.clicks += 1;
+                safeVibrate(goldenActive ? 20 : 8);
+                createParticles(e, goldenActive ? 5 : 3, goldenActive);
+                createFloatingText(e, '+' + gain, goldenActive);
+                crystalButtonEl.style.transform = 'scale(0.9)';
+                setTimeout(() => { crystalButtonEl.style.transform = ''; }, 80);
+                throttledPlayClickSound(goldenActive);
+                tryDropLuckyFragment();
+                // As verificações pesadas (achievements, itens especiais, hints) são
+                // executadas no game loop a cada ~1s, não a cada clique (BUG FIX #4).
+                updateDisplay();
+                // Não salvar a cada clique.
+            }
+
+            function clickGoldenCrystal(e) {
+                e.stopPropagation();
+                state.goldenCrystalsCaught += 1;
+                state.dailyStats.golden += 1;
+                const bonusAmount = Math.floor(getAutoPower() * 30) + getClickPower() * 20;
+                addCrystalsAndProgress(bonusAmount);
+                const coinReward = Math.floor(Math.random() * 4) + 2;
+                grantGachaCoins(coinReward, 'Cristal Dourado');
+                createParticles(e, 8, true);
+                createFloatingText(e, '🌟+' + bonusAmount, true);
+                playGoldenSound();
+                hideGoldenCrystal();
+                checkAchievements();
+                checkSpecialItems();
+                checkHints();
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function buyUpgrade(id) {
+                const def = getCurrentUpgradesDefs().find(u => u.id === id);
+                if (!def) return;
+                if (!def.unlock(state)) return;
+                const cost = getUpgradeCost(def);
+                if (state.crystals < cost) return;
+                state.crystals -= cost;
+                state.upgrades[id] = (state.upgrades[id] || 0) + 1;
+                state.totalUpgrades += 1;
+                state.lifetimeUpgrades += 1;
+                state.dailyStats.upgrades += 1;
+                playBuySound();
+                const cardElement = document.querySelector(`[data-upgrade-id="${id}"]`);
+                if (cardElement) {
+                    const rect = cardElement.getBoundingClientRect();
+                    createFloatingTextAt(rect.left + rect.width / 2, rect.top, '-' + cost, false, '#ff6666');
+                    cardElement.classList.add('purchased');
+                    setTimeout(() => cardElement.classList.remove('purchased'), 300);
+                } else {
+                    const rect = crystalButtonEl.getBoundingClientRect();
+                    createFloatingTextAt(rect.left + rect.width / 2, rect.top + rect.height / 2 - 30, '-' + cost, false, '#ff6666');
+                }
+                needsRenderUpgrades = true;
+                checkAchievements();
+                checkSpecialItems();
+                checkHints();
+                updateDisplay();
+                updateUpgradesAffordability();
+                saveGameDebounced();
+            }
+
+            function doPrestige() {
+                const gain = getPrestigeGain();
+                if (gain <= 0) return;
+                state.prestigePoints += gain;
+                state.prestigeCount += 1;
+                const prestigeCoins = 20 + state.prestigeCount * 5;
+                state.crystals = 0;
+                state.totalCrystals = 0;
+                state.totalClicks = 0;
+                state.totalUpgrades = 0;
+                state.upgrades = Object.fromEntries(getCurrentUpgradesDefs().map(u => [u.id, 0]));
+                state.autoAccumulator = 0;
+                // BUG FIX #3: goldenCrystalsCaught é resetado no prestígio para impedir que
+                // itens/conquistas que dependem desse contador continuem acumulando indefinidamente
+                // entre resets (prestigeCount permanece intacto, pois é o marcador correto de progresso).
+                state.goldenCrystalsCaught = 0;
+                hideGoldenCrystal();
+                playPrestigeSound();
+                grantGachaCoins(prestigeCoins, 'Prestígio');
+                showToast('🌟', `Prestígio realizado! +${gain} Fragmentos de Eternidade! Bônus total: +${Math.floor(getPrestigeBonus(state.prestigePoints)*100)}%`);
+                needsRenderUpgrades = true;
+                needsRenderPrestige = true;
+                checkAchievements();
+                checkSpecialItems();
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function doPrestigePast() {
+                const gain = getPrestigeGainPast();
+                if (gain <= 0) return;
+                state.temporalFragments += gain;
+                state.prestigeCountPast = (state.prestigeCountPast || 0) + 1;
+                state.crystals = 0;
+                state.totalCrystals = 0;
+                state.totalClicks = 0;
+                state.totalUpgrades = 0;
+                state.upgrades = Object.fromEntries(getCurrentUpgradesDefs().map(u => [u.id, 0]));
+                state.autoAccumulator = 0;
+                // BUG FIX #3 (equivalente na era passada)
+                state.goldenCrystalsCaught = 0;
+                hideGoldenCrystal();
+                playPrestigeSound();
+                showToast('🌀', `Prestígio Temporal! +${gain} Fragmentos Temporais!`);
+                needsRenderUpgrades = true;
+                needsRenderPrestige = true;
+                checkAchievements();
+                checkSpecialItems();
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function pullGacha(amount) {
+                const isTen = amount === 10;
+                const cost = isTen ? GACHA_COST_TEN : GACHA_COST_SINGLE;
+                const pulls = isTen ? 11 : 1;
+
+                if (state.inventory.length + pulls > MAX_INVENTORY_SIZE) {
+                    showToast('⚠️', 'Inventário cheio! Libere espaço antes de puxar.');
+                    return;
+                }
+                if (state.gachaCoins < cost) return;
+
+                state.gachaCoins -= cost;
+                state.gachaPulls += pulls;
+                let results = [];
+                for (let i = 0; i < pulls; i++) {
+                    const rarity = performGachaPull();
+                    const item = getRandomItemByRarity(rarity);
+                    if (item) {
+                        if (addItemToInventory(item.id)) {
+                            results.push({ item, rarity });
+                        }
+                    } else {
+                        const fallback = getCurrentItemsDefs().find(i => i.source === 'gacha' && i.rarity === 'common');
+                        if (fallback && addItemToInventory(fallback.id)) {
+                            results.push({ item: fallback, rarity: 'common' });
+                        }
+                    }
+                }
+                if (results.length > 0) {
+                    let itemNames = results.map(r => `${r.item.icon} ${r.item.name}`).join(', ');
+                    showToast('🎰', `Pull${pulls > 1 ? 's' : ''}: ${itemNames}`);
+                }
+                needsRenderGacha = true;
+                needsRenderInventory = true;
+                renderGacha();
+                renderInventory();
+                checkAchievements();
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function performGachaPull() {
+                state.pityCounter += 1;
+                let rarity;
+                if (state.pityCounter >= GACHA_PITY_LIMIT) {
+                    rarity = 'epic';
+                    state.pityCounter = 0;
+                } else {
+                    const roll = Math.random() * 100;
+                    if (roll < 0.5) rarity = 'legendary';
+                    else if (roll < 5.5) rarity = 'epic';
+                    else if (roll < 30) rarity = 'rare';
+                    else rarity = 'common';
+                    if (rarity === 'epic' || rarity === 'legendary') state.pityCounter = 0;
+                }
+                return rarity;
+            }
+
+            function getRandomItemByRarity(rarity) {
+                const pool = getCurrentItemsDefs().filter(item => item.source === 'gacha' && item.rarity === rarity);
+                if (pool.length === 0) return null;
+                return pool[Math.floor(Math.random() * pool.length)];
+            }
+
+            // ===== VIAGEM NO TEMPO =====
+            function canTimeTravel() {
+                if (state.era === 'past') return true;
+                return state.prestigeCount >= 10 &&
+                       state.inventory.some(item => item.itemId === 'eternity_heart') &&
+                       state.goldenCrystalsCaught >= 100 &&
+                       state.lifetimeTotalCrystals >= 10000000;
+            }
+
+            function travelToPast() {
+                if (state.era !== 'present' || !canTimeTravel()) return;
+                saveCurrentStateToEra('present');
+                loadStateFromEra('past');
+                state.era = 'past';
+                state.timeTravelCount += 1;
+                showToast('🌀', 'Você viajou para o passado! Bem-vindo à Era Primordial.');
+                needsRenderUpgrades = true;
+                needsRenderAchievements = true;
+                needsRenderGacha = true;
+                needsRenderPrestige = true;
+                needsRenderInventory = true;
+                needsRenderContracts = true;
+                needsRenderRumors = true;
+                needsRenderPortal = true;
+                updateDisplay();
+                renderAll();
+                scheduleGoldenCrystal();
+                saveGameDebounced();
+            }
+
+            function travelToPresent() {
+                if (state.era !== 'past') return;
+                saveCurrentStateToEra('past');
+                loadStateFromEra('present');
+                state.era = 'present';
+                showToast('🌟', 'Você retornou ao presente!');
+                needsRenderUpgrades = true;
+                needsRenderAchievements = true;
+                needsRenderGacha = true;
+                needsRenderPrestige = true;
+                needsRenderInventory = true;
+                needsRenderContracts = true;
+                needsRenderRumors = true;
+                needsRenderPortal = true;
+                updateDisplay();
+                renderAll();
+                scheduleGoldenCrystal();
+                saveGameDebounced();
+            }
+
+            function saveCurrentStateToEra(era) {
+                const eraState = {
+                    crystals: state.crystals,
+                    totalCrystals: state.totalCrystals,
+                    totalClicks: state.totalClicks,
+                    totalUpgrades: state.totalUpgrades,
+                    prestigePoints: state.prestigePoints,
+                    prestigeCount: state.prestigeCount,
+                    playTime: state.playTime,
+                    goldenCrystalActive: state.goldenCrystalActive,
+                    goldenCrystalExpiresAt: state.goldenCrystalExpiresAt,
+                    goldenCrystalPosX: state.goldenCrystalPosX,
+                    goldenCrystalPosY: state.goldenCrystalPosY,
+                    goldenCrystalsCaught: state.goldenCrystalsCaught,
+                    upgrades: { ...state.upgrades },
+                    inventory: state.inventory.map(item => ({ ...item })),
+                    equippedSlots: [...state.equippedSlots],
+                    gachaPulls: state.gachaPulls,
+                    pityCounter: state.pityCounter,
+                    nextUid: state.nextUid,
+                    gachaCoins: state.gachaCoins,
+                    dailyContractDate: state.dailyContractDate,
+                    dailyContracts: state.dailyContracts.map(c => ({ ...c })),
+                    luckyFragments: state.luckyFragments,
+                    dailyStats: { ...state.dailyStats },
+                    autoAccumulator: state.autoAccumulator,
+                    prestigeCountPast: state.prestigeCountPast,
+                    ownedSpecialItems: Array.isArray(state.ownedSpecialItems) ? [...state.ownedSpecialItems] : [],
+                };
+                if (era === 'present') state.presentState = eraState;
+                else state.pastState = eraState;
+            }
+
+            function loadStateFromEra(era) {
+                const eraState = era === 'present' ? state.presentState : state.pastState;
+                if (!eraState) return;
+
+                const defaultUpgradesDefs = era === 'present' ? UPGRADES_DEFS : UPGRADES_DEFS_PAST;
+                state.upgrades = { ...(eraState.upgrades && typeof eraState.upgrades === 'object' ? eraState.upgrades : Object.fromEntries(defaultUpgradesDefs.map(u => [u.id, 0]))) };
+                state.inventory = Array.isArray(eraState.inventory) ? eraState.inventory.map(item => ({ ...item })) : [];
+                state.equippedSlots = Array.isArray(eraState.equippedSlots) && eraState.equippedSlots.length === 2 ? [...eraState.equippedSlots] : [null, null];
+                state.gachaPulls = eraState.gachaPulls || 0;
+                state.pityCounter = eraState.pityCounter || 0;
+                state.nextUid = eraState.nextUid || 1;
+                state.gachaCoins = eraState.gachaCoins || 0;
+                state.dailyContractDate = eraState.dailyContractDate || '';
+                state.dailyContracts = Array.isArray(eraState.dailyContracts) ? eraState.dailyContracts.map(c => ({ ...c })) : [];
+                state.luckyFragments = eraState.luckyFragments || 0;
+                state.dailyStats = { clicks: 0, crystals: 0, golden: 0, upgrades: 0, ...(eraState.dailyStats && typeof eraState.dailyStats === 'object' ? eraState.dailyStats : {}) };
+                state.autoAccumulator = eraState.autoAccumulator || 0;
+                state.prestigeCountPast = eraState.prestigeCountPast || 0;
+                state.ownedSpecialItems = Array.isArray(eraState.ownedSpecialItems) ? [...eraState.ownedSpecialItems] : [];
+
+                state.crystals = eraState.crystals || 0;
+                state.totalCrystals = eraState.totalCrystals || 0;
+                state.totalClicks = eraState.totalClicks || 0;
+                state.totalUpgrades = eraState.totalUpgrades || 0;
+                state.prestigePoints = eraState.prestigePoints || 0;
+                state.prestigeCount = eraState.prestigeCount || 0;
+                state.playTime = eraState.playTime || 0;
+                state.goldenCrystalActive = eraState.goldenCrystalActive || false;
+                state.goldenCrystalExpiresAt = eraState.goldenCrystalExpiresAt || 0;
+                state.goldenCrystalPosX = eraState.goldenCrystalPosX || 40;
+                state.goldenCrystalPosY = eraState.goldenCrystalPosY || -40;
+                state.goldenCrystalsCaught = eraState.goldenCrystalsCaught || 0;
+            }
+
+            function syncStateWithEra() {
+                if (state.era === 'present') {
+                    if (!state.presentState) state.presentState = createEraState();
+                    loadStateFromEra('present');
+                } else {
+                    if (!state.pastState) state.pastState = createEraState(true);
+                    loadStateFromEra('past');
+                }
+            }
+
+            // ===== RENDER =====
+            const lastDisplayTexts = {
+                crystals: '',
+                cps: '',
+                level: '',
+                clickPower: '',
+                gachaCoins: '',
+                statCrystals: '',
+                statTotalCrystals: '',
+                statGachaCoins: '',
+                statClicks: '',
+                statUpgrades: '',
+                statPrestiges: '',
+                statAchievements: '',
+                statGachaPulls: '',
+                statInventoryCount: '',
+                statTime: '',
+            };
+
+            function updateDisplay() {
+                const crystals = state.crystals;
+                const autoPower = getAutoPower();
+                const level = getLevel(state.totalCrystals);
+                const clickPower = getClickPower();
+                const progress = getLevelProgress(state.totalCrystals);
+
+                const crystalsText = formatNumber(crystals);
+                if (crystalsText !== lastDisplayTexts.crystals) {
+                    crystalCountEl.textContent = crystalsText;
+                    lastDisplayTexts.crystals = crystalsText;
+                }
+                const cpsText = formatNumber(autoPower);
+                if (cpsText !== lastDisplayTexts.cps) {
+                    cpsDisplayEl.textContent = cpsText;
+                    lastDisplayTexts.cps = cpsText;
+                }
+                const levelText = String(level);
+                if (levelText !== lastDisplayTexts.level) {
+                    levelDisplayEl.textContent = levelText;
+                    lastDisplayTexts.level = levelText;
+                }
+                const clickPowerText = formatNumber(clickPower);
+                if (clickPowerText !== lastDisplayTexts.clickPower) {
+                    clickPowerValueEl.textContent = clickPowerText;
+                    lastDisplayTexts.clickPower = clickPowerText;
+                }
+                const gachaCoinsText = formatNumber(state.gachaCoins);
+                if (gachaCoinsText !== lastDisplayTexts.gachaCoins) {
+                    gachaCoinCountEl.textContent = gachaCoinsText;
+                    lastDisplayTexts.gachaCoins = gachaCoinsText;
+                }
+                levelBarFillEl.style.width = (progress * 100).toFixed(2) + '%';
+
+                if (statCrystalsEl) {
+                    const val = formatNumber(state.crystals);
+                    if (val !== lastDisplayTexts.statCrystals) { statCrystalsEl.textContent = val; lastDisplayTexts.statCrystals = val; }
+                }
+                if (statTotalCrystalsEl) {
+                    const val = formatNumber(state.lifetimeTotalCrystals);
+                    if (val !== lastDisplayTexts.statTotalCrystals) { statTotalCrystalsEl.textContent = val; lastDisplayTexts.statTotalCrystals = val; }
+                }
+                if (statGachaCoinsEl) {
+                    const val = formatNumber(state.gachaCoins);
+                    if (val !== lastDisplayTexts.statGachaCoins) { statGachaCoinsEl.textContent = val; lastDisplayTexts.statGachaCoins = val; }
+                }
+                if (statClicksEl) {
+                    const val = formatNumber(state.lifetimeTotalClicks);
+                    if (val !== lastDisplayTexts.statClicks) { statClicksEl.textContent = val; lastDisplayTexts.statClicks = val; }
+                }
+                if (statUpgradesEl) {
+                    const val = formatNumber(state.lifetimeUpgrades);
+                    if (val !== lastDisplayTexts.statUpgrades) { statUpgradesEl.textContent = val; lastDisplayTexts.statUpgrades = val; }
+                }
+                if (statPrestigesEl) {
+                    const val = String(state.prestigeCount);
+                    if (val !== lastDisplayTexts.statPrestiges) { statPrestigesEl.textContent = val; lastDisplayTexts.statPrestiges = val; }
+                }
+                const unlockedCount = (state.achievements && typeof state.achievements === 'object')
+                    ? Object.values(state.achievements).filter(Boolean).length
+                    : 0;
+                if (statAchievementsEl) {
+                    const val = unlockedCount + ' / ' + ACHIEVEMENTS_DEFS.length;
+                    if (val !== lastDisplayTexts.statAchievements) { statAchievementsEl.textContent = val; lastDisplayTexts.statAchievements = val; }
+                }
+                if (statGachaPullsEl) {
+                    const val = String(state.gachaPulls);
+                    if (val !== lastDisplayTexts.statGachaPulls) { statGachaPullsEl.textContent = val; lastDisplayTexts.statGachaPulls = val; }
+                }
+                if (statInventoryCountEl) {
+                    const val = `${state.inventory.length}/${MAX_INVENTORY_SIZE}`;
+                    if (val !== lastDisplayTexts.statInventoryCount) { statInventoryCountEl.textContent = val; lastDisplayTexts.statInventoryCount = val; }
+                }
+                if (statTimeEl) {
+                    const val = formatTime(Math.floor(state.playTime));
+                    if (val !== lastDisplayTexts.statTime) { statTimeEl.textContent = val; lastDisplayTexts.statTime = val; }
+                }
+
+                const gacha1Btn = document.getElementById('gacha1');
+                const gacha10Btn = document.getElementById('gacha10');
+                if (gacha1Btn) gacha1Btn.disabled = state.gachaCoins < GACHA_COST_SINGLE;
+                if (gacha10Btn) gacha10Btn.disabled = state.gachaCoins < GACHA_COST_TEN;
+
+                if (needsRenderPrestige) {
+                    renderPrestige();
+                    needsRenderPrestige = false;
+                }
+                if (needsRenderInventory) {
+                    renderInventory();
+                    needsRenderInventory = false;
+                }
+                if (needsRenderContracts) {
+                    renderContracts();
+                    needsRenderContracts = false;
+                }
+                if (needsRenderPortal) {
+                    renderPortal();
+                    needsRenderPortal = false;
+                }
+                if (needsRenderRumors) {
+                    renderRumors();
+                    needsRenderRumors = false;
+                }
+                updateContractsBadge();
+            }
+
+            function formatUpgradeDesc(def) {
+                // Mostra o valor percentual quando aplicável (upgrades híbridos)
+                if (def.percent) {
+                    const pct = Math.round(def.percent * 100);
+                    return `+${pct}% por ${def.type === 'click' ? 'clique' : 'produção automática'}`;
+                }
+                return def.desc;
+            }
+
+            function renderUpgrades() {
+                if (!needsRenderUpgrades) return;
+                upgradesListEl.innerHTML = '';
+                const defs = getCurrentUpgradesDefs();
+                let hasUpgrades = false;
+                for (const def of defs) {
+                    if (!def.unlock(state)) continue;
+                    if (currentUpgradeFilter !== 'all' && def.type !== currentUpgradeFilter) continue;
+                    hasUpgrades = true;
+                    const level = state.upgrades[def.id] || 0;
+                    const cost = getUpgradeCost(def);
+                    const affordable = state.crystals >= cost;
+                    const card = document.createElement('div');
+                    card.className = 'upgrade-card' + (affordable ? ' affordable' : ' not-affordable');
+                    card.setAttribute('data-upgrade-id', def.id);
+                    card.innerHTML = `
+                        <div class="glow-bg"></div>
+                        <div class="upgrade-icon">${def.icon}</div>
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">${def.name}</div>
+                            <div class="upgrade-desc">${formatUpgradeDesc(def)}</div>
+                            <div class="upgrade-level">Nível ${level}</div>
+                        </div>
+                        <div class="upgrade-cost">
+                            <div class="cost-label">Custo</div>
+                            <div class="cost-value">💎 ${formatNumber(cost)}</div>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => buyUpgrade(def.id));
+                    upgradesListEl.appendChild(card);
+                }
+                if (!hasUpgrades) {
+                    upgradesListEl.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-dim);">Continue minerando para desbloquear upgrades...</p>';
+                }
+                needsRenderUpgrades = false;
+                updateUpgradesAffordability();
+            }
+
+            function updateUpgradesAffordability() {
+                if (!upgradesListEl) return;
+                const cards = upgradesListEl.querySelectorAll('.upgrade-card');
+                cards.forEach(card => {
+                    const id = card.dataset.upgradeId;
+                    const def = getCurrentUpgradesDefs().find(u => u.id === id);
+                    if (!def) return;
+                    const cost = getUpgradeCost(def);
+                    const affordable = state.crystals >= cost;
+                    if (affordable) {
+                        card.classList.add('affordable');
+                        card.classList.remove('not-affordable');
+                    } else {
+                        card.classList.remove('affordable');
+                        card.classList.add('not-affordable');
+                    }
+                });
+            }
+
+            function renderAchievements() {
+                if (!needsRenderAchievements) return;
+                achievementsListEl.innerHTML = '';
+                ensureAchievements(state);
+                const unlockedCount = Object.values(state.achievements).filter(Boolean).length;
+                const total = ACHIEVEMENTS_DEFS.length;
+                const summary = document.createElement('div');
+                summary.style.cssText = 'text-align:center;padding:10px;color:var(--text-secondary);font-size:0.85rem;margin-bottom:8px;';
+                summary.textContent = `Conquistas: ${unlockedCount}/${total} desbloqueadas`;
+                achievementsListEl.appendChild(summary);
+                for (const ach of ACHIEVEMENTS_DEFS) {
+                    const unlocked = state.achievements[ach.id] || false;
+                    const card = document.createElement('div');
+                    card.className = 'achievement-card' + (unlocked ? ' unlocked' : ' locked');
+                    card.innerHTML = `
+                        <div class="achievement-icon">${unlocked ? ach.icon : '🔒'}</div>
+                        <div class="achievement-info">
+                            <div class="ach-name">${ach.name}</div>
+                            <div class="ach-desc">${ach.desc}</div>
+                        </div>
+                    `;
+                    achievementsListEl.appendChild(card);
+                }
+                needsRenderAchievements = false;
+            }
+
+            function renderPrestige() {
+                if (!prestigePanelEl) return;
+                if (state.era === 'present') {
+                    const gain = getPrestigeGain();
+                    prestigePanelEl.innerHTML = `
+                        <div class="prestige-card">
+                            <div class="prestige-title">🌟 Prestígio Cósmico</div>
+                            <div class="prestige-desc">Reinicie sua jornada para ganhar <strong>Fragmentos de Eternidade</strong>. Cada fragmento concede <strong>+15%</strong> de produção global permanente.</div>
+                            <div class="prestige-gain">✨ +<span id="prestigeGain">${gain}</span> Fragmentos</div>
+                            <button class="prestige-btn" id="prestigeBtn" ${gain <= 0 ? 'disabled' : ''}>🌟 Fazer Prestígio</button>
+                            <div class="prestige-bonus-display">Bônus atual: +<span id="prestigeBonusValue">${Math.floor(state.prestigePoints * PRESTIGE_BONUS_PER_POINT * 100)}</span>%</div>
+                        </div>
+                    `;
+                    const prestigeBtn = document.getElementById('prestigeBtn');
+                    if (prestigeBtn) prestigeBtn.addEventListener('click', () => {
+                        showModal('Confirmar Prestígio', 'Tem certeza? Você vai perder todo o progresso atual, mas ganhará ' + gain + ' Fragmentos de Eternidade.', () => doPrestige());
+                    });
+                } else {
+                    const gain = getPrestigeGainPast();
+                    prestigePanelEl.innerHTML = `
+                        <div class="prestige-card">
+                            <div class="prestige-title">🌀 Prestígio Temporal</div>
+                            <div class="prestige-desc">Reinicie a Era Primordial para ganhar <strong>Fragmentos Temporais</strong> que podem ser gastos em melhorias permanentes para todas as eras.</div>
+                            <div class="prestige-gain">🌀 +<span id="prestigeGainPast">${gain}</span> Fragmentos Temporais</div>
+                            <button class="prestige-btn" id="prestigeBtnPast" ${gain <= 0 ? 'disabled' : ''}>🌀 Fazer Prestígio Temporal</button>
+                            <div class="prestige-bonus-display">Fragmentos Temporais: ${state.temporalFragments}</div>
+                        </div>
+                    `;
+                    const prestigeBtnPast = document.getElementById('prestigeBtnPast');
+                    if (prestigeBtnPast) prestigeBtnPast.addEventListener('click', () => {
+                        showModal('Confirmar Prestígio Temporal', 'Tem certeza? Você vai reiniciar a Era Primordial e ganhar ' + gain + ' Fragmentos Temporais.', () => doPrestigePast());
+                    });
+
+                    const temporalUpgradesSection = document.createElement('div');
+                    temporalUpgradesSection.className = 'prestige-card';
+                    temporalUpgradesSection.innerHTML = '<div class="prestige-title">🛒 Melhorias Temporais</div>';
+                    for (const def of TEMPORAL_UPGRADES_DEFS) {
+                        const level = state.temporalUpgrades?.[def.id] || 0;
+                        const cost = Math.floor(def.baseCost * Math.pow(def.costMult, level));
+                        const btn = document.createElement('button');
+                        btn.className = 'prestige-btn';
+                        btn.style.marginBottom = '8px';
+                        btn.textContent = `${def.icon} ${def.name} (Nv ${level}) - Custo: ${cost} Fragmentos`;
+                        btn.disabled = state.temporalFragments < cost;
+                        btn.addEventListener('click', () => {
+                            buyTemporalUpgrade(def.id);
+                        });
+                        temporalUpgradesSection.appendChild(btn);
+                    }
+                    prestigePanelEl.appendChild(temporalUpgradesSection);
+                }
+            }
+
+            function buyTemporalUpgrade(id) {
+                const def = TEMPORAL_UPGRADES_DEFS.find(t => t.id === id);
+                if (!def) return;
+                const level = state.temporalUpgrades?.[id] || 0;
+                const cost = Math.floor(def.baseCost * Math.pow(def.costMult, level));
+                if (state.temporalFragments < cost) return;
+                state.temporalFragments -= cost;
+                if (!state.temporalUpgrades) state.temporalUpgrades = {};
+                state.temporalUpgrades[id] = level + 1;
+                showToast('🛒', `Melhoria comprada: ${def.name}!`);
+                needsRenderPrestige = true;
+                updateDisplay();
+                saveGameDebounced();
+            }
+
+            function renderInventory() {
+                if (!inventoryPanelEl) return;
+                inventoryPanelEl.innerHTML = '';
+                const equippedContainer = document.createElement('div');
+                equippedContainer.className = 'inventory-card';
+                equippedContainer.innerHTML = '<div class="inventory-title">Itens Equipados</div>';
+                const slotsDiv = document.createElement('div');
+                slotsDiv.className = 'equipped-slots';
+                for (let i = 0; i < MAX_EQUIPPED; i++) {
+                    const uid = state.equippedSlots[i];
+                    const slot = document.createElement('div');
+                    slot.className = 'equipped-slot';
+                    if (uid) {
+                        const invItem = state.inventory.find(item => item.uid === uid);
+                        const def = invItem ? getItemDef(invItem.itemId) : null;
+                        if (def) {
+                            slot.innerHTML = `
+                                <span class="item-icon">${def.icon}</span>
+                                <span class="item-name">${def.name}</span>
+                                <button class="unequip-btn" data-uid="${uid}" style="margin-top:4px;padding:2px 8px;font-size:0.65rem;border:none;background:var(--accent-gold);color:#000;border-radius:4px;cursor:pointer;">Desq.</button>
+                            `;
+                        }
+                    } else {
+                        slot.textContent = 'Vazio';
+                    }
+                    slotsDiv.appendChild(slot);
+                }
+                equippedContainer.appendChild(slotsDiv);
+                inventoryPanelEl.appendChild(equippedContainer);
+
+                const invContainer = document.createElement('div');
+                invContainer.className = 'inventory-card';
+                invContainer.innerHTML = '<div class="inventory-title">Inventário (' + state.inventory.length + '/' + MAX_INVENTORY_SIZE + ')</div>';
+                const grid = document.createElement('div');
+                grid.className = 'inventory-grid';
+                if (state.inventory.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:var(--text-dim);padding:20px;">Inventário vazio. Puxe itens no gacha ou complete missões!</p>';
+                } else {
+                    for (const item of state.inventory) {
+                        const def = getItemDef(item.itemId);
+                        if (!def) continue;
+                        const equipped = isItemEquipped(item.uid);
+                        const bonusLabel = def.percentBonus
+                            ? `+${def.baseBonus} e +${Math.round(def.percentBonus * 100)}% ${def.type === 'click' ? 'clique' : 'auto'}`
+                            : `+${def.baseBonus} ${def.type === 'click' ? 'clique' : 'auto'}`;
+                        const card = document.createElement('div');
+                        card.className = 'inventory-item' + (equipped ? ' equipped' : '');
+                        card.innerHTML = `
+                            <div class="item-rarity rarity-${def.rarity}">${def.rarity}</div>
+                            <div class="item-icon">${def.icon}</div>
+                            <div class="item-name">${def.name}</div>
+                            <div class="item-bonus">${bonusLabel}</div>
+                            <button class="sell-btn" data-uid="${item.uid}">Vender</button>
+                        `;
+                        card.addEventListener('click', () => toggleEquip(item.uid));
+                        card.querySelector('.sell-btn').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const uid = parseInt(e.target.dataset.uid);
+                            showModal('Vender Item', 'Tem certeza que deseja vender este item?', () => sellItem(uid));
+                        });
+                        card.title = equipped ? 'Clique para desequipar' : 'Clique para equipar';
+                        grid.appendChild(card);
+                    }
+                }
+                invContainer.appendChild(grid);
+                inventoryPanelEl.appendChild(invContainer);
+
+                inventoryPanelEl.querySelectorAll('.unequip-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const uid = parseInt(btn.dataset.uid);
+                        unequipItem(uid);
+                        renderInventory();
+                    });
+                });
+            }
+
+            function renderGacha() {
+                if (!needsRenderGacha) return;
+                gachaPanelEl.innerHTML = `
+                    <div class="gacha-card">
+                        <div class="gacha-title">🎰 Gacha de Cristais</div>
+                        <div class="gacha-desc">Gaste Gacha Coins para obter itens raros que aumentam sua produção permanentemente.<br>
+                        Ganhe Gacha Coins completando contratos diários, capturando Cristais Dourados, fazendo prestígio e desbloqueando conquistas.</div>
+                        <div class="gacha-bonus">Pity: ${state.pityCounter}/${GACHA_PITY_LIMIT}</div>
+                        <div class="gacha-buttons">
+                            <button class="gacha-btn" id="gacha1" ${state.gachaCoins >= GACHA_COST_SINGLE ? '' : 'disabled'}>1x (🪙${GACHA_COST_SINGLE})</button>
+                            <button class="gacha-btn" id="gacha10" ${state.gachaCoins >= GACHA_COST_TEN ? '' : 'disabled'}>10+1 (🪙${GACHA_COST_TEN})</button>
+                        </div>
+                        <div class="gacha-collection">
+                            <div class="gacha-item">⭐ Comum: <span class="level">${state.inventory.filter(i => { const d = getItemDef(i.itemId); return d && d.rarity === 'common'; }).length}</span></div>
+                            <div class="gacha-item">🔷 Raro: <span class="level">${state.inventory.filter(i => { const d = getItemDef(i.itemId); return d && d.rarity === 'rare'; }).length}</span></div>
+                            <div class="gacha-item">💜 Épico: <span class="level">${state.inventory.filter(i => { const d = getItemDef(i.itemId); return d && d.rarity === 'epic'; }).length}</span></div>
+                            <div class="gacha-item">🌈 Lendário: <span class="level">${state.inventory.filter(i => { const d = getItemDef(i.itemId); return d && (d.rarity === 'legendary' || d.rarity === 'mythic'); }).length}</span></div>
+                        </div>
+                    </div>
+                `;
+                const gacha1Btn = document.getElementById('gacha1');
+                const gacha10Btn = document.getElementById('gacha10');
+                if (gacha1Btn) gacha1Btn.addEventListener('click', () => pullGacha(1));
+                if (gacha10Btn) gacha10Btn.addEventListener('click', () => pullGacha(10));
+                needsRenderGacha = false;
+            }
+
+            function renderContracts() {
+                if (!contractsPanelEl) return;
+                contractsPanelEl.innerHTML = '';
+                resetDailyProgressIfNeeded();
+
+                if (state.dailyContracts.length === 0) {
+                    contractsPanelEl.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-dim);">Nenhum contrato disponível hoje.</p>';
+                    return;
+                }
+
+                for (const contract of state.dailyContracts) {
+                    const def = DAILY_CONTRACTS_DEFS.find(d => d.id === contract.id);
+                    if (!def) continue;
+
+                    let current = 0;
+                    switch(def.id) {
+                        case 'clicks': current = state.dailyStats.clicks; break;
+                        case 'mine': current = state.dailyStats.crystals; break;
+                        case 'golden': current = state.dailyStats.golden; break;
+                        case 'upgrades': current = state.dailyStats.upgrades; break;
+                        case 'level': current = getLevel(state.totalCrystals); break;
+                    }
+
+                    const progress = Math.min(current / def.target, 1);
+                    const completed = contract.completed || false;
+                    const claimed = contract.claimed || false;
+
+                    const card = document.createElement('div');
+                    card.className = 'contract-card' + (claimed ? ' claimed' : completed ? ' completed' : '');
+                    card.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                            <div style="flex:1;min-width:150px;">
+                                <div style="font-weight:700;font-size:0.9rem;">${def.desc}</div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);">Progresso: ${formatNumber(current)}/${formatNumber(def.target)}</div>
+                                <div style="font-size:0.7rem;color:var(--accent-gold);">Recompensa: 🪙 ${def.reward} Gacha Coins</div>
+                            </div>
+                            <div style="text-align:center;min-width:80px;">
+                                <div style="width:60px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+                                    <div style="height:100%;width:${(progress*100).toFixed(0)}%;background:linear-gradient(90deg,var(--accent-green),var(--accent-cyan));border-radius:3px;transition:width 0.5s;"></div>
+                                </div>
+                                <div style="font-size:0.7rem;color:${claimed ? 'var(--accent-green)' : completed ? 'var(--accent-cyan)' : 'var(--text-dim)'};">${claimed ? '✅ Reivindicado' : completed ? '✅ Concluído' : 'Pendente'}</div>
+                                ${completed && !claimed ? `<button class="claim-btn" data-contract-id="${def.id}">Reivindicar</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    if (completed && !claimed) {
+                        card.querySelector('.claim-btn').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            claimContract(def.id);
+                        });
+                    }
+                    contractsPanelEl.appendChild(card);
+                }
+            }
+
+            function renderRumors() {
+                if (!rumorsPanelEl) return;
+                rumorsPanelEl.innerHTML = '';
+                const items = getCurrentItemsDefs().filter(d => d.hints);
+                if (items.length === 0) {
+                    rumorsPanelEl.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-dim);">Nenhum rumor disponível nesta era.</p>';
+                    return;
+                }
+                
+                let hasVisibleRumor = false;
+                
+                for (const def of items) {
+                    const owned = state.inventory.some(item => item.itemId === def.id);
+                    const firstHintKey = def.id + '_' + def.hints[0].progress;
+                    const hasHint = state.hintsSeen[firstHintKey] || owned;
+                    
+                    if (!hasHint) continue;
+                    hasVisibleRumor = true;
+                    
+                    const progress = getProgressForItem(def, state);
+                    const card = document.createElement('div');
+                    card.className = 'rumor-card' + (owned ? ' unlocked' : ' locked');
+                    
+                    let title = '???';
+                    let hintText = '???';
+                    
+                    if (owned) {
+                        title = def.name;
+                        hintText = 'Desbloqueado!';
+                    } else {
+                        title = '???';
+                        let lastRevealedHint = null;
+                        for (const hint of def.hints) {
+                            if (progress >= hint.progress && state.hintsSeen[def.id + '_' + hint.progress]) {
+                                lastRevealedHint = hint.text;
+                            }
+                        }
+                        hintText = lastRevealedHint || '???';
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="rumor-title">${def.icon} ${title}</div>
+                        <div class="rumor-hint">${hintText}</div>
+                        ${progress !== null && !owned ? `<div class="rumor-progress">Progresso: ${(progress*100).toFixed(0)}%</div>` : ''}
+                    `;
+                    rumorsPanelEl.appendChild(card);
+                }
+                
+                if (!hasVisibleRumor) {
+                    rumorsPanelEl.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-dim);">Nenhum rumor conhecido ainda. Continue minerando e preste atenção ao velho sábio...</p>';
+                }
+            }
+
+            function renderPortal() {
+                if (!portalPanelEl) return;
+                portalPanelEl.innerHTML = '';
+                if (state.era === 'past') {
+                    portalPanelEl.innerHTML = `
+                        <div class="prestige-card">
+                            <div class="prestige-title">🌀 Portal Temporal</div>
+                            <div class="prestige-desc">Você está na Era Primordial. Deseja retornar ao presente?</div>
+                            <button class="prestige-btn" id="travelPresentBtn">🌐 Voltar ao Presente</button>
+                        </div>
+                    `;
+                    const travelPresentBtn = document.getElementById('travelPresentBtn');
+                    if (travelPresentBtn) travelPresentBtn.addEventListener('click', () => {
+                        showModal('Viajar ao Presente', 'Deseja retornar ao presente? Seu progresso na Era Primordial será salvo.', () => travelToPresent());
+                    });
+                    return;
+                }
+                
+                const present = state;
+                const reqs = [
+                    { label: '10 Prestígios', value: present.prestigeCount >= 10, current: present.prestigeCount, target: 10 },
+                    { label: 'Possuir Coração da Eternidade', value: present.inventory.some(i => i.itemId === 'eternity_heart'), current: present.inventory.some(i => i.itemId === 'eternity_heart') ? 1 : 0, target: 1 },
+                    { label: '100 Cristais Dourados', value: present.goldenCrystalsCaught >= 100, current: present.goldenCrystalsCaught, target: 100 },
+                    { label: '10 Milhões de Cristais (vida)', value: present.lifetimeTotalCrystals >= 10000000, current: present.lifetimeTotalCrystals, target: 10000000 },
+                ];
+                
+                const canTravel = canTimeTravel();
+                
+                let reqsHtml = reqs.map(r => {
+                    const progress = Math.min(r.current / r.target, 1);
+                    return `
+                        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:6px;">
+                            <span>${r.value ? '✅' : '⏳'} ${r.label}</span>
+                            <span style="color:var(--text-secondary);">${formatNumber(r.current)}/${formatNumber(r.target)}</span>
+                        </div>
+                    `;
+                }).join('');
+                
+                let desc = canTravel
+                    ? 'Uma fenda temporal se abriu! Você agora pode viajar à Era Primordial, onde novas aventuras o aguardam.'
+                    : 'Uma fenda misteriosa está se formando. Reúna os requisitos para desvendar seus segredos...';
+                
+                let btnText = canTravel ? '🌀 Viajar ao Passado' : '🌀 ???';
+                
+                portalPanelEl.innerHTML = `
+                    <div class="prestige-card">
+                        <div class="prestige-title">🌀 Portal Temporal</div>
+                        <div class="prestige-desc">${desc}</div>
+                        <div style="text-align:left;margin:10px 0;">${reqsHtml}</div>
+                        <button class="prestige-btn" id="travelPastBtn" ${canTravel ? '' : 'disabled'}>${btnText}</button>
+                    </div>
+                `;
+                
+                if (canTravel) {
+                    const travelPastBtn = document.getElementById('travelPastBtn');
+                    if (travelPastBtn) travelPastBtn.addEventListener('click', () => {
+                        showModal('Viajar ao Passado', 'Você está prestes a viajar para a Era Primordial. Seu progresso atual será salvo. Deseja continuar?', () => travelToPast());
+                    });
+                }
+            }
+
+            function renderAll() {
+                try { renderUpgrades(); } catch(e) { console.error('Erro ao renderizar upgrades:', e); }
+                try { renderAchievements(); } catch(e) { console.error('Erro ao renderizar conquistas:', e); }
+                try { renderGacha(); } catch(e) { console.error('Erro ao renderizar gacha:', e); }
+                try { renderPrestige(); } catch(e) { console.error('Erro ao renderizar prestígio:', e); }
+                try { renderInventory(); } catch(e) { console.error('Erro ao renderizar inventário:', e); }
+                try { renderContracts(); } catch(e) { console.error('Erro ao renderizar contratos:', e); }
+                try { renderRumors(); } catch(e) { console.error('Erro ao renderizar rumores:', e); }
+                try { renderPortal(); } catch(e) { console.error('Erro ao renderizar portal:', e); }
+            }
+
+            function updateContractsBadge() {
+                const tab = document.querySelector('.tab[data-tab="contracts"]');
+                if (!tab) return;
+                let badge = tab.querySelector('.badge');
+                const ready = state.dailyContracts.filter(c => c.completed && !c.claimed).length;
+                if (ready > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'badge';
+                        tab.appendChild(badge);
+                    }
+                    badge.textContent = ready;
+                    badge.classList.remove('hidden');
+                } else if (badge) {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            // ===== POOL DE PARTÍCULAS (implementação) =====
+            function createParticles(event, count, golden) {
+                const rect = crystalWrapperEl.getBoundingClientRect();
+                const cx = event.clientX || rect.left + rect.width / 2;
+                const cy = event.clientY || rect.top + rect.height / 2;
+                count = Math.min(count, 5); // Limita ainda mais
+                for (let i = 0; i < count; i++) {
+                    if (particlePool.length === 0) continue;
+                    const particle = particlePool[particleIndex % particlePool.length];
+                    particleIndex++;
+                    const size = golden ? Math.random() * 8 + 4 : Math.random() * 6 + 2;
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 120 + 40;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance - 60;
+                    const colors = golden ? ['#ffd700', '#ff8c00', '#ffee00', '#ffaa00'] : ['#00ffff', '#00ccff', '#ff00ff', '#cc00ff', '#ffffff', '#88ffff'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.left = cx + 'px';
+                    particle.style.top = cy + 'px';
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.background = color;
+                    particle.style.boxShadow = `0 0 ${size*2}px ${color}`;
+                    particle.style.setProperty('--tx', tx + 'px');
+                    particle.style.setProperty('--ty', ty + 'px');
+                    particle.style.display = 'block';
+                    // Reinicia animação
+                    particle.classList.remove('particle');
+                    void particle.offsetWidth;
+                    particle.classList.add('particle');
+                    clearTimeout(particle._hideTimeout);
+                    particle._hideTimeout = setTimeout(() => {
+                        particle.style.display = 'none';
+                    }, 800);
+                }
+            }
+
+            function createFloatingText(event, text, golden, customColor) {
+                const rect = crystalWrapperEl.getBoundingClientRect();
+                const cx = event.clientX || rect.left + rect.width / 2;
+                const cy = event.clientY || rect.top + rect.height / 2 - 30;
+                createFloatingTextAt(cx + (Math.random() * 30 - 15), cy, text, golden, customColor);
+            }
+
+            function createFloatingTextAt(x, y, text, golden, customColor) {
+                if (floatingTextPool.length === 0) return;
+                const el = floatingTextPool[floatingTextIndex % floatingTextPool.length];
+                floatingTextIndex++;
+                el.className = 'floating-text' + (golden ? ' golden' : '');
+                el.textContent = text;
+                if (customColor) {
+                    el.style.color = customColor;
+                    el.style.textShadow = `0 0 10px ${customColor}, 0 2px 4px rgba(0,0,0,0.5)`;
+                } else {
+                    el.style.color = '';
+                    el.style.textShadow = '';
+                }
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                el.style.display = 'block';
+                // Reinicia animação
+                el.classList.remove('floating-text');
+                void el.offsetWidth;
+                el.classList.add('floating-text');
+                clearTimeout(el._hideTimeout);
+                el._hideTimeout = setTimeout(() => {
+                    el.style.display = 'none';
+                }, 1000);
+            }
+
+            function showToast(icon, text) {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-text">${text}</span>`;
+                toastContainerEl.appendChild(toast);
+                setTimeout(() => toast.remove(), 3500);
+            }
+
+            function showModal(title, text, onConfirm) {
+                modalTitleEl.textContent = title;
+                modalTextEl.textContent = text;
+                modalOverlayEl.classList.remove('hidden');
+                modalConfirmBtn.onclick = () => {
+                    modalOverlayEl.classList.add('hidden');
+                    onConfirm();
+                };
+                modalCancelBtn.onclick = () => {
+                    modalOverlayEl.classList.add('hidden');
+                };
+                modalOverlayEl.onclick = (e) => {
+                    if (e.target === modalOverlayEl) modalOverlayEl.classList.add('hidden');
+                };
+            }
+
+            // ===== SOM =====
+            let audioCtx = null;
+            function getAudioContext() {
+                if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                return audioCtx;
+            }
+            function playTone(freq, duration, type, volume, delay) {
+                if (!state.soundEnabled) return;
+                try {
+                    const ctx = getAudioContext();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = type || 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + (delay || 0));
+                    gain.gain.setValueAtTime(volume || 0.15, ctx.currentTime + (delay || 0));
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (delay || 0) + duration);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + (delay || 0)); osc.stop(ctx.currentTime + (delay || 0) + duration);
+                } catch (e) {}
+            }
+            function playClickSound(golden) {
+                if (golden) { playTone(1200,0.08,'triangle',0.2,0); playTone(1800,0.06,'sine',0.15,0.04); }
+                else { playTone(800,0.06,'triangle',0.15,0); playTone(1200,0.04,'sine',0.08,0.02); }
+            }
+            function playBuySound() { playTone(600,0.08,'sine',0.18,0); playTone(900,0.08,'sine',0.15,0.08); playTone(1200,0.1,'sine',0.12,0.16); }
+            function playGoldenSound() { playTone(800,0.1,'triangle',0.2,0); playTone(1200,0.1,'triangle',0.2,0.08); playTone(1600,0.12,'sine',0.18,0.16); playTone(2000,0.15,'sine',0.15,0.24); }
+            function playPrestigeSound() { playTone(400,0.15,'sine',0.2,0); playTone(600,0.15,'sine',0.2,0.15); playTone(800,0.2,'sine',0.2,0.3); playTone(1200,0.3,'sine',0.18,0.45); playTone(1600,0.4,'sine',0.15,0.6); }
+            function playAchievementSound() { playTone(1000,0.08,'triangle',0.15,0); playTone(1400,0.08,'triangle',0.15,0.08); playTone(1800,0.1,'sine',0.18,0.16); }
+
+            // ===== THROTTLE PARA VIBRAÇÃO E SOM =====
+            let lastVibrate = 0;
+            function safeVibrate(pattern) {
+                const now = Date.now();
+                if (now - lastVibrate > 100) {
+                    lastVibrate = now;
+                    if (navigator.vibrate) navigator.vibrate(pattern);
+                }
+            }
+
+            let lastClickSoundTime = 0;
+            function throttledPlayClickSound(golden) {
+                const now = Date.now();
+                if (now - lastClickSoundTime > 80) {
+                    lastClickSoundTime = now;
+                    playClickSound(golden);
+                }
+            }
+
+            // ===== SAVE =====
+            function saveGame() {
+                if (!allowSave) return;
+                state.lastSave = Date.now();
+                saveCurrentStateToEra(state.era);
+                try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { console.error('Falha ao salvar:', e); }
+            }
+
+            function saveGameDebounced() {
+                if (!allowSave) return;
+                if (saveDebounceTimeout) clearTimeout(saveDebounceTimeout);
+                saveDebounceTimeout = setTimeout(() => {
+                    saveGame();
+                    saveDebounceTimeout = null;
+                }, 500);
+            }
+
+            function ensureUpgrades(eraState, defs) {
+                if (!eraState.upgrades || typeof eraState.upgrades !== 'object') {
+                    eraState.upgrades = {};
+                }
+                for (const def of defs) {
+                    if (!(def.id in eraState.upgrades)) {
+                        eraState.upgrades[def.id] = 0;
+                    }
+                }
+            }
+
+            function ensureAchievements(s) {
+                if (!s.achievements || typeof s.achievements !== 'object') {
+                    s.achievements = {};
+                }
+                for (const ach of ACHIEVEMENTS_DEFS) {
+                    if (!(ach.id in s.achievements)) {
+                        s.achievements[ach.id] = false;
+                    }
+                }
+            }
+
+            // BUG FIX #5: valida a estrutura mínima de um save (objeto, era válida,
+            // presentState/pastState presentes) antes de aceitá-lo, seja vindo do
+            // localStorage ou de um código importado pelo usuário.
+            function isValidSaveShape(parsed) {
+                if (!parsed || typeof parsed !== 'object') return false;
+                if (parsed.era !== undefined && parsed.era !== 'present' && parsed.era !== 'past') return false;
+                if (parsed.presentState !== undefined && (typeof parsed.presentState !== 'object' || parsed.presentState === null)) return false;
+                if (parsed.pastState !== undefined && (typeof parsed.pastState !== 'object' || parsed.pastState === null)) return false;
+                return true;
+            }
+
+            function loadState() {
+                try {
+                    const saved = localStorage.getItem(SAVE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (!isValidSaveShape(parsed)) {
+                            console.error('Save corrompido/malformado encontrado no localStorage. Iniciando novo jogo.');
+                            const def = defaultState();
+                            ensureAchievements(def);
+                            return def;
+                        }
+                        const merged = {
+                            era: parsed.era || 'present',
+                            presentState: { ...createEraState(), ...(parsed.presentState || {}) },
+                            pastState: { ...createEraState(true), ...(parsed.pastState || {}) },
+                            achievements: parsed.achievements || {},
+                            // BUG FIX #1: as estatísticas globais de vida (lifetimeTotalCrystals,
+                            // lifetimeTotalClicks, lifetimeUpgrades) e as conquistas são salvas na
+                            // raiz do estado (state.lifetimeTotalCrystals etc, ver saveGame()), então
+                            // precisam ser lidas diretamente da raiz do save, não de dentro de
+                            // presentState/pastState.
+                            lifetimeTotalCrystals: parsed.lifetimeTotalCrystals || 0,
+                            lifetimeTotalClicks: parsed.lifetimeTotalClicks || 0,
+                            lifetimeUpgrades: parsed.lifetimeUpgrades || 0,
+                            temporalFragments: parsed.temporalFragments || 0,
+                            timeTravelCount: parsed.timeTravelCount || 0,
+                            soundEnabled: parsed.soundEnabled !== undefined ? parsed.soundEnabled : true,
+                            hintsSeen: parsed.hintsSeen || {},
+                            temporalUpgrades: parsed.temporalUpgrades || {},
+                            lastSave: parsed.lastSave || Date.now(),
+                        };
+
+                        // Compatibilidade com saves antigos (formato onde os globais ficavam
+                        // dentro de presentState/pastState): só sobrescreve se a raiz não tiver
+                        // o valor e o valor antigo existir.
+                        if (parsed.era === 'present' && parsed.presentState) {
+                            if (!parsed.lifetimeTotalCrystals && typeof parsed.presentState.lifetimeTotalCrystals === 'number') merged.lifetimeTotalCrystals = parsed.presentState.lifetimeTotalCrystals;
+                            if (!parsed.lifetimeTotalClicks && typeof parsed.presentState.lifetimeTotalClicks === 'number') merged.lifetimeTotalClicks = parsed.presentState.lifetimeTotalClicks;
+                            if (!parsed.lifetimeUpgrades && typeof parsed.presentState.lifetimeUpgrades === 'number') merged.lifetimeUpgrades = parsed.presentState.lifetimeUpgrades;
+                            if (!parsed.achievements && parsed.presentState.achievements && typeof parsed.presentState.achievements === 'object') {
+                                merged.achievements = { ...parsed.presentState.achievements };
+                            }
+                        } else if (parsed.era === 'past' && parsed.pastState) {
+                            if (!parsed.lifetimeTotalCrystals && typeof parsed.pastState.lifetimeTotalCrystals === 'number') merged.lifetimeTotalCrystals = parsed.pastState.lifetimeTotalCrystals;
+                            if (!parsed.lifetimeTotalClicks && typeof parsed.pastState.lifetimeTotalClicks === 'number') merged.lifetimeTotalClicks = parsed.pastState.lifetimeTotalClicks;
+                            if (!parsed.lifetimeUpgrades && typeof parsed.pastState.lifetimeUpgrades === 'number') merged.lifetimeUpgrades = parsed.pastState.lifetimeUpgrades;
+                            if (!parsed.achievements && parsed.pastState.achievements && typeof parsed.pastState.achievements === 'object') {
+                                merged.achievements = { ...parsed.pastState.achievements };
+                            }
+                        }
+
+                        // Garantir chaves de upgrades
+                        ensureUpgrades(merged.presentState, UPGRADES_DEFS);
+                        ensureUpgrades(merged.pastState, UPGRADES_DEFS_PAST);
+
+                        // Garantir conquistas globais
+                        ensureAchievements(merged);
+
+                        // Normalizar arrays
+                        if (!Array.isArray(merged.presentState.inventory)) merged.presentState.inventory = [];
+                        if (!Array.isArray(merged.pastState.inventory)) merged.pastState.inventory = [];
+                        if (!Array.isArray(merged.presentState.equippedSlots) || merged.presentState.equippedSlots.length !== 2) merged.presentState.equippedSlots = [null, null];
+                        if (!Array.isArray(merged.pastState.equippedSlots) || merged.pastState.equippedSlots.length !== 2) merged.pastState.equippedSlots = [null, null];
+                        if (!Array.isArray(merged.presentState.dailyContracts)) merged.presentState.dailyContracts = [];
+                        if (!Array.isArray(merged.pastState.dailyContracts)) merged.pastState.dailyContracts = [];
+                        if (typeof merged.presentState.dailyStats !== 'object' || merged.presentState.dailyStats === null) merged.presentState.dailyStats = { clicks:0, crystals:0, golden:0, upgrades:0 };
+                        if (typeof merged.pastState.dailyStats !== 'object' || merged.pastState.dailyStats === null) merged.pastState.dailyStats = { clicks:0, crystals:0, golden:0, upgrades:0 };
+                        if (!Array.isArray(merged.presentState.ownedSpecialItems)) merged.presentState.ownedSpecialItems = [];
+                        if (!Array.isArray(merged.pastState.ownedSpecialItems)) merged.pastState.ownedSpecialItems = [];
+
+                        return merged;
+                    }
+                } catch (e) {
+                    console.error('Erro ao carregar save:', e);
+                }
+                const def = defaultState();
+                ensureAchievements(def);
+                return def;
+            }
+
+            function formatNumber(num) {
+                if (num < 1000) return Math.floor(num).toString();
+                if (num < 1e6) return (num/1e3).toFixed(1)+'K';
+                if (num < 1e9) return (num/1e6).toFixed(2)+'M';
+                if (num < 1e12) return (num/1e9).toFixed(2)+'B';
+                return (num/1e12).toFixed(2)+'T';
+            }
+            function formatTime(seconds) {
+                if (seconds < 60) return seconds+'s';
+                const mins = Math.floor(seconds/60); const secs = seconds%60;
+                if (mins < 60) return mins+'m '+secs+'s';
+                const hours = Math.floor(mins/60); const remainingMins = mins%60;
+                return hours+'h '+remainingMins+'m';
+            }
+
+            // ===== GAME LOOP =====
+            function gameLoop() {
+                const now = Date.now();
+                const delta = (now - lastTickTime) / 1000;
+                lastTickTime = now;
+
+                const autoPower = getAutoPower();
+                if (autoPower > 0) {
+                    state.autoAccumulator += autoPower * delta;
+                    const integerPart = Math.floor(state.autoAccumulator);
+                    if (integerPart > 0) {
+                        addCrystalsAndProgress(integerPart);
+                        state.autoAccumulator -= integerPart;
+                    }
+                }
+
+                if (!document.hidden) {
+                    state.playTime += delta;
+                }
+
+                if (state.goldenCrystalActive && now > state.goldenCrystalExpiresAt) {
+                    hideGoldenCrystal();
+                }
+
+                // BUG FIX #4: as verificações pesadas (itens especiais, dicas, conquistas)
+                // agora rodam no máximo 1x/s em vez de a cada tick de 100ms (10x/s),
+                // reduzindo o trabalho por segundo em ~90% sem perder responsividade percebida.
+                if (now - lastHeavyCheckTime >= HEAVY_CHECK_INTERVAL) {
+                    lastHeavyCheckTime = now;
+                    checkSpecialItems();
+                    checkHints();
+                    checkAchievements();
+                }
+
+                updateDisplay();
+                updateUpgradesAffordability();
+                if (needsRenderUpgrades) renderUpgrades();
+                if (needsRenderAchievements) renderAchievements();
+                if (needsRenderGacha) renderGacha();
+                if (needsRenderPrestige) renderPrestige();
+                if (needsRenderInventory) renderInventory();
+                if (needsRenderContracts) renderContracts();
+                if (needsRenderRumors) renderRumors();
+                if (needsRenderPortal) renderPortal();
+                if (now - state.lastSave > SAVE_INTERVAL) saveGame();
+            }
+
+            function contractCheckInterval() {
+                checkDailyContracts();
+                updateContractsBadge();
+            }
+
+            function spawnGoldenCrystal() {
+                if (state.goldenCrystalActive) return;
+                state.goldenCrystalActive = true;
+                state.goldenCrystalExpiresAt = Date.now() + GOLDEN_CRYSTAL_DURATION;
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 80 + 60;
+                const posX = Math.cos(angle) * distance;
+                const posY = Math.sin(angle) * distance;
+                state.goldenCrystalPosX = posX;
+                state.goldenCrystalPosY = posY;
+                goldenCrystalEl.style.left = `calc(50% + ${posX}px)`;
+                goldenCrystalEl.style.top = `calc(50% + ${posY}px)`;
+                goldenCrystalEl.classList.remove('hidden');
+                goldenCrystalExpireTimeout = setTimeout(() => { hideGoldenCrystal(); }, GOLDEN_CRYSTAL_DURATION);
+                showToast('🌟', 'Cristal Dourado apareceu!');
+                playBuySound();
+            }
+            function hideGoldenCrystal() {
+                if (!state.goldenCrystalActive) return;
+                state.goldenCrystalActive = false;
+                goldenCrystalEl.classList.add('hidden');
+                if (goldenCrystalExpireTimeout) { clearTimeout(goldenCrystalExpireTimeout); goldenCrystalExpireTimeout = null; }
+                scheduleGoldenCrystal();
+            }
+            function scheduleGoldenCrystal() {
+                if (goldenCrystalTimeout) clearTimeout(goldenCrystalTimeout);
+                const [min, max] = GOLDEN_CRYSTAL_INTERVAL;
+                const delay = Math.random() * (max - min) + min;
+                goldenCrystalTimeout = setTimeout(() => { spawnGoldenCrystal(); goldenCrystalTimeout = null; }, delay);
+            }
+
+            function resetSave() {
+                showModal('Resetar Progresso', 'Tem certeza que deseja apagar todo o progresso salvo? Esta ação é irreversível!', () => {
+                    allowSave = false;
+                    localStorage.removeItem(SAVE_KEY);
+                    window.removeEventListener('beforeunload', saveGame);
+                    window.removeEventListener('pagehide', saveGame);
+                    location.reload();
+                });
+            }
+
+            function fallbackCopy(text) {
+                const input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('📋', 'Código de save copiado!');
+                } catch (e) {
+                    showToast('❌', 'Falha ao copiar.');
+                }
+                document.body.removeChild(input);
+            }
+
+            function exportSave() {
+                try {
+                    const data = JSON.stringify(state);
+                    const base64 = btoa(unescape(encodeURIComponent(data)));
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(base64).then(() => {
+                            showToast('📋', 'Código de save copiado!');
+                        }).catch(() => {
+                            fallbackCopy(base64);
+                        });
+                    } else {
+                        fallbackCopy(base64);
+                    }
+                } catch (e) {
+                    showToast('❌', 'Falha ao exportar save.');
+                }
+            }
+
+            function importSave() {
+                const code = prompt('Cole o código de save aqui:');
+                if (!code) return;
+                try {
+                    const data = decodeURIComponent(escape(atob(code)));
+                    const parsed = JSON.parse(data);
+                    // BUG FIX #5: valida a estrutura mínima antes de aceitar o save importado,
+                    // evitando que um código colado malformado quebre o jogo ao recarregar.
+                    if (isValidSaveShape(parsed) && parsed.era) {
+                        allowSave = false;
+                        localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
+                        location.reload();
+                    } else {
+                        showToast('❌', 'Código de save inválido.');
+                    }
+                } catch (e) {
+                    showToast('❌', 'Código de save inválido.');
+                }
+            }
+
+            function applyOfflineProduction() {
+                const now = Date.now();
+                const elapsed = (now - state.lastSave) / 1000;
+                if (elapsed > 60) {
+                    const offlineSeconds = Math.min(elapsed, OFFLINE_MAX_HOURS * 3600);
+                    const autoPower = getAutoPower();
+                    if (autoPower > 0) {
+                        const gain = Math.floor(autoPower * offlineSeconds * OFFLINE_EFFICIENCY);
+                        addCrystalsAndProgress(gain);
+                        showToast('💤', `Bem-vindo de volta! Você ganhou ${formatNumber(gain)} cristais offline.`);
+                    }
+                }
+            }
+
+            function init() {
+                initParticlePool();
+                initFloatingTextPool();
+
+                setInterval(gameLoop, 100);
+                setInterval(contractCheckInterval, 1000);
+
+                crystalButtonEl.addEventListener('pointerdown', (e) => { e.preventDefault(); clickCrystal(e); });
+                crystalButtonEl.setAttribute('tabindex', '0');
+                goldenCrystalEl.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); clickGoldenCrystal(e); });
+
+                $$('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        $$('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+                        $$('.tab-panel').forEach(p => p.classList.remove('active'));
+                        tab.classList.add('active');
+                        tab.setAttribute('aria-selected', 'true');
+                        document.getElementById(tab.dataset.tab).classList.add('active');
+                        if (tab.dataset.tab === 'contracts') {
+                            needsRenderContracts = true;
+                            renderContracts();
+                        }
+                        if (tab.dataset.tab === 'rumors') {
+                            needsRenderRumors = true;
+                            renderRumors();
+                        }
+                        if (tab.dataset.tab === 'portal') {
+                            needsRenderPortal = true;
+                            renderPortal();
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.upgrade-filter-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.upgrade-filter-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        currentUpgradeFilter = btn.dataset.filter;
+                        needsRenderUpgrades = true;
+                        renderUpgrades();
+                    });
+                });
+
+                soundToggleEl.addEventListener('click', () => {
+                    state.soundEnabled = !state.soundEnabled;
+                    soundToggleEl.textContent = state.soundEnabled ? '🔊' : '🔇';
+                    saveGameDebounced();
+                });
+                soundToggleEl.textContent = state.soundEnabled ? '🔊' : '🔇';
+
+                npcDialogCloseEl.addEventListener('click', () => npcDialogEl.classList.add('hidden'));
+
+                modalCancelBtn.addEventListener('click', () => modalOverlayEl.classList.add('hidden'));
+                modalOverlayEl.addEventListener('click', (e) => { if (e.target === modalOverlayEl) modalOverlayEl.classList.add('hidden'); });
+
+                if (resetSaveBtn) resetSaveBtn.addEventListener('click', resetSave);
+                if (exportSaveBtn) exportSaveBtn.addEventListener('click', exportSave);
+                if (importSaveBtn) importSaveBtn.addEventListener('click', importSave);
+
+                window.addEventListener('beforeunload', saveGame);
+                window.addEventListener('pagehide', saveGame);
+                document.addEventListener('visibilitychange', () => { lastTickTime = Date.now(); });
+
+                if (state.goldenCrystalActive) {
+                    const remaining = state.goldenCrystalExpiresAt - Date.now();
+                    if (remaining > 0) {
+                        goldenCrystalEl.classList.remove('hidden');
+                        goldenCrystalEl.style.left = `calc(50% + ${state.goldenCrystalPosX || 40}px)`;
+                        goldenCrystalEl.style.top = `calc(50% + ${state.goldenCrystalPosY || -40}px)`;
+                        goldenCrystalExpireTimeout = setTimeout(() => { hideGoldenCrystal(); }, remaining);
+                    } else {
+                        state.goldenCrystalActive = false;
+                        goldenCrystalEl.classList.add('hidden');
+                        scheduleGoldenCrystal();
+                    }
+                } else {
+                    scheduleGoldenCrystal();
+                }
+
+                resetDailyProgressIfNeeded();
+                applyOfflineProduction();
+
+                needsRenderUpgrades = true;
+                needsRenderAchievements = true;
+                needsRenderGacha = true;
+                needsRenderPrestige = true;
+                needsRenderInventory = true;
+                needsRenderContracts = true;
+                needsRenderRumors = true;
+                needsRenderPortal = true;
+                updateDisplay();
+                renderAll();
+                checkAchievements();
+                checkSpecialItems();
+                updateContractsBadge();
+                console.log('💎 Crystal Miner com todas as correções aplicadas!');
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+            else init();
+        })();
+    </script>
+</body>
+</html>
