@@ -430,6 +430,8 @@
         .upgrade-card:active { transform: scale(0.97); transition: transform 0.08s ease; }
         .upgrade-card.affordable { border-color: rgba(0,255,255,0.6); box-shadow: 0 0 20px rgba(0,255,255,0.2); }
         .upgrade-card.not-affordable { opacity: 0.55; cursor: not-allowed; }
+        .upgrade-card.maxed { border-color: var(--accent-gold); opacity: 0.9; box-shadow: 0 0 16px rgba(255,215,0,0.25); }
+        .upgrade-card.maxed .cost-value { color: var(--accent-gold); font-weight: bold; }
         .upgrade-card.purchased { animation: cardPurchased 0.3s ease; border-color: var(--accent-gold); }
         @keyframes cardPurchased {
             0% { transform: scale(1); background: rgba(255,215,0,0.2); }
@@ -903,8 +905,8 @@
             const GACHA_PITY_LIMIT = 80;
             const MAX_INVENTORY_SIZE = 20;
             const MAX_EQUIPPED = 2;
-            const OFFLINE_MAX_HOURS = 8;
-            const OFFLINE_EFFICIENCY = 0.5;
+            const OFFLINE_MAX_HOURS = 4;
+            const OFFLINE_EFFICIENCY = 0.4;
             const TEMPORAL_FRAGMENT_BONUS = 0.10;
 
             // ===== DEFINIÇÃO DE ITENS (PRESENTE) =====
@@ -980,10 +982,10 @@
                 { id: 'wormhole', name: 'Buraco de Minhoca', desc: '+400/s', baseCost: 15000000, costMult: 1.45, type: 'auto', value: 400, icon: '🌀', unlock: (s) => s.lifetimeTotalCrystals >= 20000000 && s.prestigeCount >= 2 },
                 { id: 'dark_matter', name: 'Matéria Escura', desc: '+1500/s', baseCost: 80000000, costMult: 1.48, type: 'auto', value: 1500, icon: '🌌', unlock: (s) => s.lifetimeTotalCrystals >= 100000000 && s.prestigeCount >= 3 },
                 { id: 'cosmic_pick', name: 'Picareta Cósmica', desc: '+1500 por clique', baseCost: 400000000, costMult: 1.50, type: 'click', value: 1500, icon: '🌟', unlock: (s) => s.lifetimeTotalCrystals >= 500000000 && s.prestigeCount >= 5 },
-                { id: 'click_mastery', name: 'Maestria em Clique', desc: '+10% por clique', baseCost: 50000000, costMult: 1.60, type: 'click', percent: 0.10, icon: '🎯', unlock: (s) => s.prestigeCount >= 3 },
-                { id: 'auto_efficiency', name: 'Eficiência Automática', desc: '+8% produção automática', baseCost: 80000000, costMult: 1.65, type: 'auto', percent: 0.08, icon: '⚙️', unlock: (s) => s.prestigeCount >= 4 },
-                { id: 'click_supremacy', name: 'Supremacia de Clique', desc: '+7% por clique', baseCost: 600000000, costMult: 1.70, type: 'click', percent: 0.07, icon: '💥', unlock: (s) => s.prestigeCount >= 6 },
-                { id: 'auto_supremacy', name: 'Supremacia Automática', desc: '+7% produção automática', baseCost: 900000000, costMult: 1.72, type: 'auto', percent: 0.07, icon: '🏭', unlock: (s) => s.prestigeCount >= 7 },
+                { id: 'click_mastery', name: 'Maestria em Clique', desc: '+10% por clique', baseCost: 50000000, costMult: 1.90, type: 'click', percent: 0.10, maxLevel: 25, icon: '🎯', unlock: (s) => s.prestigeCount >= 3 },
+                { id: 'auto_efficiency', name: 'Eficiência Automática', desc: '+8% produção automática', baseCost: 80000000, costMult: 1.95, type: 'auto', percent: 0.08, maxLevel: 25, icon: '⚙️', unlock: (s) => s.prestigeCount >= 4 },
+                { id: 'click_supremacy', name: 'Supremacia de Clique', desc: '+7% por clique', baseCost: 600000000, costMult: 2.00, type: 'click', percent: 0.07, maxLevel: 25, icon: '💥', unlock: (s) => s.prestigeCount >= 6 },
+                { id: 'auto_supremacy', name: 'Supremacia Automática', desc: '+7% produção automática', baseCost: 900000000, costMult: 2.05, type: 'auto', percent: 0.07, maxLevel: 25, icon: '🏭', unlock: (s) => s.prestigeCount >= 7 },
             ];
 
             // ===== UPGRADES DA PARTE 2 (PASSADO) =====
@@ -1000,8 +1002,8 @@
                 { id: 'elder_wisdom', name: 'Sabedoria Ancestral', desc: '+400 por clique', baseCost: 15000000, costMult: 1.45, type: 'click', value: 400, icon: '📜', unlock: (s) => s.lifetimeTotalCrystals >= 20000000 && s.prestigeCountPast >= 2 },
                 { id: 'primordial_soup', name: 'Sopa Primordial', desc: '+1500/s', baseCost: 80000000, costMult: 1.48, type: 'auto', value: 1500, icon: '🧪', unlock: (s) => s.lifetimeTotalCrystals >= 100000000 && s.prestigeCountPast >= 3 },
                 { id: 'cosmic_echo', name: 'Eco Cósmico', desc: '+1500 por clique', baseCost: 400000000, costMult: 1.50, type: 'click', value: 1500, icon: '🌌', unlock: (s) => s.lifetimeTotalCrystals >= 500000000 && s.prestigeCountPast >= 5 },
-                { id: 'past_click_mastery', name: 'Maestria Ancestral de Clique', desc: '+10% por clique', baseCost: 50000000, costMult: 1.60, type: 'click', percent: 0.10, icon: '🎯', unlock: (s) => s.prestigeCountPast >= 3 },
-                { id: 'past_auto_efficiency', name: 'Eficiência Primordial', desc: '+8% produção automática', baseCost: 80000000, costMult: 1.65, type: 'auto', percent: 0.08, icon: '⚙️', unlock: (s) => s.prestigeCountPast >= 4 },
+                { id: 'past_click_mastery', name: 'Maestria Ancestral de Clique', desc: '+10% por clique', baseCost: 50000000, costMult: 1.90, type: 'click', percent: 0.10, maxLevel: 25, icon: '🎯', unlock: (s) => s.prestigeCountPast >= 3 },
+                { id: 'past_auto_efficiency', name: 'Eficiência Primordial', desc: '+8% produção automática', baseCost: 80000000, costMult: 1.95, type: 'auto', percent: 0.08, maxLevel: 25, icon: '⚙️', unlock: (s) => s.prestigeCountPast >= 4 },
             ];
 
             // ===== CONQUISTAS =====
@@ -1057,7 +1059,7 @@
                 for (let i = 0; i < count; i++) {
                     const tier = startTier + i;
                     const value = baseValue * Math.pow(2, i);
-                    const mult = costMult + i * 0.01;
+                    const mult = costMult + i * 0.012;
                     const reqCrystals = Math.floor(startCost * Math.pow(mult, i));
                     out.push({
                         id: `${prefix}_${tier}`,
@@ -1068,6 +1070,7 @@
                         type: type,
                         value: value,
                         icon: icon,
+                        maxLevel: 1000,
                         unlock: (s) => s.lifetimeTotalCrystals >= reqCrystals * 0.2,
                     });
                 }
@@ -1384,9 +1387,17 @@
                 if (denom <= 0) return 0;
                 return Math.max(0, Math.min(1, (totalCrystals - currentLevelXp) / denom));
             }
-            function getLevelBonus(level) { return (level - 1) * 0.03; }
+            function getLevelBonus(level) { return (level - 1) * 0.05; }
             function getPrestigeBonus(prestigePoints) { return prestigePoints * PRESTIGE_BONUS_PER_POINT; }
             function getTemporalFragmentBonus() { return state.temporalFragments * TEMPORAL_FRAGMENT_BONUS; }
+
+            // Retorno decrescente para o pool de %: compõe bônus crus altos sem estourar.
+            // K controla o ponto de joelho; tanh é contínua e sempre crescente (nunca trava o jogador).
+            function softCapPercent(x) {
+                const K = 5;
+                if (!Number.isFinite(x)) return 0;
+                return K * Math.tanh(x / K);
+            }
 
             function getTotalMultiplier() {
                 const levelBonus = getLevelBonus(getLevel(state.totalCrystals));
@@ -1397,7 +1408,12 @@
                     if (state.temporalUpgrades.temp_prod_both) extraBonus += state.temporalUpgrades.temp_prod_both * 0.10;
                     if (state.temporalUpgrades.temp_click_both) extraBonus += state.temporalUpgrades.temp_click_both * 0.15;
                 }
-                return (1 + levelBonus + prestigeBonus + temporalBonus + extraBonus);
+                // Soma bruta de todos os bônus aditivos do multiplicador global.
+                const rawBonus = levelBonus + prestigeBonus + temporalBonus + extraBonus;
+                // Retorno decrescente: aproxima de um teto macio (SOFT_CAP) sem travar o jogador.
+                const SOFT_CAP = 1000;
+                const effBonus = SOFT_CAP * Math.tanh(rawBonus / SOFT_CAP);
+                return (1 + effBonus);
             }
 
             // Sistema híbrido: soma absoluta (base) + percentual aplicado sobre a base,
@@ -1427,7 +1443,7 @@
                     percent += def.percentBonus || 0;
                 }
 
-                const total = base * (1 + percent);
+                const total = base * (1 + softCapPercent(percent));
                 const result = Math.floor(total * getTotalMultiplier());
                 return Number.isFinite(result) ? result : 0;
             }
@@ -1457,7 +1473,7 @@
                     percent += def.percentBonus || 0;
                 }
 
-                const total = base * (1 + percent);
+                const total = base * (1 + softCapPercent(percent));
                 const result = Math.floor(total * getTotalMultiplier());
                 return Number.isFinite(result) ? result : 0;
             }
@@ -1472,13 +1488,13 @@
             function getPrestigeGain() {
                 if (state.totalCrystals < 100000) return 0;
                 const g = Math.pow(state.totalCrystals / 100000, 0.7);
-                return Number.isFinite(g) ? Math.min(Math.floor(g), 1e6) : 0;
+                return Number.isFinite(g) ? Math.min(Math.floor(g), 5e6) : 0;
             }
 
             function getPrestigeGainPast() {
                 if (state.totalCrystals < 100000) return 0;
                 const g = Math.pow(state.totalCrystals / 100000, 0.6) * 1.5;
-                return Number.isFinite(g) ? Math.min(Math.floor(g), 1e6) : 0;
+                return Number.isFinite(g) ? Math.min(Math.floor(g), 5e6) : 0;
             }
 
             function isItemEquipped(uid) { return state.equippedSlots.includes(uid); }
@@ -1830,6 +1846,10 @@
                 const def = getCurrentUpgradesDefs().find(u => u.id === id);
                 if (!def) return;
                 if (!def.unlock(state)) return;
+                if (def.maxLevel !== undefined && (state.upgrades[id] || 0) >= def.maxLevel) {
+                    showToast('🔒', `${def.name} já está no nível máximo (${def.maxLevel}).`);
+                    return;
+                }
                 const cost = getUpgradeCost(def);
                 if (state.crystals < cost) return;
                 state.crystals -= cost;
@@ -1961,8 +1981,8 @@
                     state.pityCounter = 0;
                 } else {
                     const roll = Math.random() * 100;
-                    if (roll < 0.5) rarity = 'legendary';
-                    else if (roll < 5.5) rarity = 'epic';
+                    if (roll < 0.3) rarity = 'legendary';
+                    else if (roll < 4) rarity = 'epic';
                     else if (roll < 30) rarity = 'rare';
                     else rarity = 'common';
                     if (rarity === 'epic' || rarity === 'legendary') state.pityCounter = 0;
@@ -2249,10 +2269,11 @@
                     if (currentUpgradeFilter !== 'all' && def.type !== currentUpgradeFilter) continue;
                     hasUpgrades = true;
                     const level = state.upgrades[def.id] || 0;
-                    const cost = getUpgradeCost(def);
-                    const affordable = state.crystals >= cost;
+                    const atMax = def.maxLevel !== undefined && level >= def.maxLevel;
+                    const cost = atMax ? 0 : getUpgradeCost(def);
+                    const affordable = !atMax && state.crystals >= cost;
                     const card = document.createElement('div');
-                    card.className = 'upgrade-card' + (affordable ? ' affordable' : ' not-affordable');
+                    card.className = 'upgrade-card' + (atMax ? ' maxed' : (affordable ? ' affordable' : ' not-affordable'));
                     card.setAttribute('data-upgrade-id', def.id);
                     card.innerHTML = `
                         <div class="glow-bg"></div>
@@ -2260,11 +2281,11 @@
                         <div class="upgrade-info">
                             <div class="upgrade-name">${def.name}</div>
                             <div class="upgrade-desc">${formatUpgradeDesc(def)}</div>
-                            <div class="upgrade-level">Nível ${level}</div>
+                            <div class="upgrade-level">Nível ${level}${def.maxLevel !== undefined ? ' / ' + def.maxLevel : ''}</div>
                         </div>
                         <div class="upgrade-cost">
-                            <div class="cost-label">Custo</div>
-                            <div class="cost-value">💎 ${formatNumber(cost)}</div>
+                            <div class="cost-label">${atMax ? 'Status' : 'Custo'}</div>
+                            <div class="cost-value">${atMax ? '🔒 MÁX' : '💎 ' + formatNumber(cost)}</div>
                         </div>
                     `;
                     card.addEventListener('click', () => buyUpgrade(def.id));
@@ -2284,6 +2305,12 @@
                     const id = card.dataset.upgradeId;
                     const def = getCurrentUpgradesDefs().find(u => u.id === id);
                     if (!def) return;
+                    const level = state.upgrades[def.id] || 0;
+                    if (def.maxLevel !== undefined && level >= def.maxLevel) {
+                        card.classList.add('maxed');
+                        card.classList.remove('affordable', 'not-affordable');
+                        return;
+                    }
                     const cost = getUpgradeCost(def);
                     const affordable = state.crystals >= cost;
                     if (affordable) {
@@ -2879,6 +2906,9 @@
                 for (const def of defs) {
                     if (!(def.id in eraState.upgrades)) {
                         eraState.upgrades[def.id] = 0;
+                    } else if (def.maxLevel !== undefined && eraState.upgrades[def.id] > def.maxLevel) {
+                        // Clamp saves antigos que compraram além do novo teto de nível.
+                        eraState.upgrades[def.id] = def.maxLevel;
                     }
                 }
             }
